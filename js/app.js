@@ -159,13 +159,16 @@ function renderSidebar() {
     </nav>
     <div class="sidebar-footer">
       <div class="user-chip">
-        <div class="avatar">AO</div>
+        <div class="avatar">${currentUser().iniciales}</div>
         <div>
-          <div class="user-name">Alejandro Olguín</div>
-          <div class="user-role">Analista Senior · SSO</div>
+          <div class="user-name">${currentUser().nombre}</div>
+          <div class="user-role">${currentUser().rol} · SSO</div>
         </div>
+        <button class="logout-btn" data-action="logout" title="Cerrar sesión">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        </button>
       </div>
-      <div class="app-version">Quant MVP · Fase 1 (solo lectura) · v0.1.0</div>
+      <div class="app-version">Quant MVP · Fase 1 (solo lectura) · v0.2.0</div>
     </div>`;
 }
 
@@ -1816,6 +1819,7 @@ document.addEventListener('click', e => {
   if (a === 'faq-toggle') el.closest('.faq-item').classList.toggle('open');
   if (a === 'open-palette') openPalette();
   if (a === 'export') doExport(el.dataset.what);
+  if (a === 'logout') doLogout();
 });
 
 /* ---------- Exportación contextual ---------- */
@@ -1897,6 +1901,7 @@ function renderPalette(q) {
 }
 
 document.addEventListener('keydown', e => {
+  if (!document.body.classList.contains('authed')) return;
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); return; }
   if ($('#palette-overlay').classList.contains('hidden')) return;
   const matches = window.__paletteMatches || [];
@@ -1909,7 +1914,55 @@ document.addEventListener('keydown', e => {
 $('#palette-input').addEventListener('input', e => { paletteIdx = 0; renderPalette(e.target.value); });
 $('#palette-overlay').addEventListener('click', e => { if (e.target.id === 'palette-overlay') closePalette(); });
 
+/* ============================================================
+   AUTENTICACIÓN (SSO simulado — demo)
+   ============================================================ */
+const AUTH_KEY = 'quant_session';
+
+function currentUser() {
+  let s = null;
+  try { s = JSON.parse(sessionStorage.getItem(AUTH_KEY)); } catch (e) { /* sesión corrupta → login */ }
+  if (!s) return { nombre: 'Invitado', rol: '—', iniciales: '·' };
+  const iniciales = s.nombre.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  return { ...s, iniciales };
+}
+
+function doLogin(email, rol) {
+  const nombre = email.split('@')[0].split('.').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || 'Usuario Demo';
+  const btn = $('#login-sso');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  $('#login-sso-label').textContent = 'Redirigiendo al IdP corporativo…';
+  setTimeout(() => {
+    sessionStorage.setItem(AUTH_KEY, JSON.stringify({ nombre, email, rol }));
+    state.vista = rol === 'Ejecutivo' ? 'ejecutiva' : 'analista';
+    document.body.classList.add('authed');
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    $('#login-sso-label').textContent = 'Continuar con SSO MetLife';
+    renderAll();
+    toast(`Sesión iniciada como ${nombre} (${rol}) vía SSO corporativo — demo`);
+  }, 900);
+}
+
+function doLogout() {
+  sessionStorage.removeItem(AUTH_KEY);
+  document.body.classList.remove('authed');
+  history.replaceState(null, '', location.pathname);
+  state.module = 'inicio'; state.vista = 'ejecutiva';
+  $('#login-email').focus();
+}
+
+$('#login-sso').addEventListener('click', () => doLogin($('#login-email').value.trim() || 'usuario.demo@metlife.cl', 'Analista Senior'));
+$('#login-email').addEventListener('keydown', e => { if (e.key === 'Enter') $('#login-sso').click(); });
+document.querySelectorAll('[data-login-rol]').forEach(b =>
+  b.addEventListener('click', () => doLogin($('#login-email').value.trim() || 'usuario.demo@metlife.cl', b.dataset.loginRol)));
+
 /* ---------- Init ---------- */
 readHash();
 window.addEventListener('hashchange', () => { readHash(); renderSidebar(); render(); });
+if (currentUser().rol !== '—') {
+  state.vista = currentUser().rol === 'Ejecutivo' ? 'ejecutiva' : 'analista';
+  document.body.classList.add('authed');
+}
 renderAll();

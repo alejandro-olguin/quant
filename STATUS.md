@@ -19,6 +19,7 @@ El prototipo cubre el 100% de la arquitectura de información del [PRD v1.2](PRD
 | Fase 1.5 — Relative Value (screener z-score, pares, ideas/watchlist) | ✅ Completo |
 | Fase 1.5 — Optimización (frontera, actual vs. óptimo, restricciones → Cumplimiento, corridas) | ✅ Completo |
 | Transversales (context bar, ⌘K, conciliación, semáforos, export CSV contextual, deep-links) | ✅ Completo |
+| Login con SSO simulado (roles Analista/Ejecutivo → vista por defecto, sesión por pestaña, logout) | ✅ Completo (demo; SSO real pendiente de IdP) |
 | PRD actualizado a v1.2 (zonas, módulos nuevos, integraciones, preguntas abiertas #10–14) | ✅ En el repo |
 
 Verificación: los 14 módulos y sus ~45 sub-tabs renderizan sin errores de consola en CLP, UF y USD; conversión validada (MM$ 6.920.850 ≈ 176.358 M UF ≈ 7.404 MM US$).

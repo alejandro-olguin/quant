@@ -21,6 +21,7 @@ python3 -m http.server 4173
   - **Estrategia & Pricing** (comités): **Rentas Vitalicias** (pricing del día, SCOMP, sensibilidades, histórico) · **Relative Value** (screener de spreads con z-scores, pares, ideas) · **Optimización** (frontera eficiente, actual vs. óptimo, restricciones enlazadas a Cumplimiento, corridas).
   - **Gobierno**: Políticas · Procedimientos · FAQ + Glosario.
 - **Patrón "ejercicio"** en los módulos de mesa: resultado con semáforo → detalle → supuestos → historial de corridas; fila de estado de ejercicios en Inicio.
+- **Login con SSO simulado**: pantalla de inicio de sesión con branding MetLife, ingreso rápido demo como Analista o Ejecutivo (define la vista por defecto), sesión persistente en la pestaña y cierre de sesión desde el sidebar.
 - **Context bar global** (patrón Bloomberg PORT): cartera, fecha de corte, moneda CLP/UF/USD y benchmark; recalcula todas las vistas. Incluye indicador de conciliación (patrón Clearwater).
 - **Command palette ⌘K**: módulos, instrumentos, emisores, límites y documentos.
 - **Toggle Ejecutiva / Analista** con dos densidades de información.

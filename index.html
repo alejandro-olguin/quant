@@ -7,6 +7,44 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <!-- Login (SSO simulado) -->
+  <div id="login">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-brand-row">
+          <div class="brand-mark login-mark">Q</div>
+          <div>
+            <div class="login-title">Quant</div>
+            <div class="login-tag">MetLife Chile · Inversiones</div>
+          </div>
+        </div>
+        <div class="login-headline">Portal de Gestión de Inversiones</div>
+        <ul class="login-points">
+          <li>Fuente única de verdad de la cartera</li>
+          <li>Límites CMF y ejercicios de mesa en un solo lugar</li>
+          <li>Pricing RRVV, derivados, liquidez y optimización</li>
+        </ul>
+        <div class="login-foot">Fase 1 · solo lectura · datos conciliados con custodio</div>
+      </div>
+      <div class="login-form">
+        <div class="lf-title">Iniciar sesión</div>
+        <div class="lf-sub">Acceso restringido a usuarios autorizados de la Gerencia de Inversiones.</div>
+        <label class="lf-label" for="login-email">Correo corporativo</label>
+        <input id="login-email" class="lf-input" type="email" value="alejandro.olguin@metlife.cl" autocomplete="username" spellcheck="false">
+        <button id="login-sso" class="lf-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <span id="login-sso-label">Continuar con SSO MetLife</span>
+        </button>
+        <div class="lf-divider"><span>ingreso rápido (demo)</span></div>
+        <div class="lf-quick">
+          <button class="lf-quick-btn" data-login-rol="Analista Senior">Entrar como <b>Analista</b></button>
+          <button class="lf-quick-btn" data-login-rol="Ejecutivo">Entrar como <b>Ejecutivo</b></button>
+        </div>
+        <div class="lf-note">Autenticación vía IdP corporativo (Entra ID) con MFA. Prototipo: no se requieren credenciales reales.</div>
+      </div>
+    </div>
+  </div>
+
   <div id="app">
     <aside id="sidebar"></aside>
     <div id="shell">

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quant · Portal de Inversiones — MetLife Chile</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar"></aside>
+    <div id="shell">
+      <header id="contextbar"></header>
+      <main id="main"></main>
+    </div>
+  </div>
+
+  <!-- Command palette -->
+  <div id="palette-overlay" class="hidden">
+    <div id="palette">
+      <div class="palette-input-wrap">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="palette-input" type="text" placeholder="Buscar módulos, instrumentos, emisores, documentos…" autocomplete="off">
+        <kbd>esc</kbd>
+      </div>
+      <div id="palette-results"></div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

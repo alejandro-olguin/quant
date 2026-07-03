@@ -13,6 +13,8 @@ const state = {
   vista: 'ejecutiva',    // ejecutiva | analista
   fichaId: null,
   limiteId: 'L6',
+  politicaId: null,
+  politicaQ: '',
   filtros: { q: '', clase: '', moneda: '', rating: '', groupBy: '' },
   procQ: '',
 };
@@ -43,6 +45,7 @@ function fechaCorteCL() {
 }
 
 function semEstado(uso) { return uso >= 100 ? 'bad' : uso >= 85 ? 'warn' : 'ok'; }
+function politicaDeLimite(limiteId) { return POLITICAS.find(p => p.limites.some(x => x.limiteId === limiteId)); }
 function semLabel(e) { return e === 'bad' ? 'Excedido' : e === 'warn' ? 'Alerta' : 'En cumplimiento'; }
 const alertas = () => LIMITES.filter(l => semEstado(l.uso) !== 'ok');
 
@@ -122,7 +125,7 @@ const MODULES = [
   { id: 'rrvv', nombre: 'Rentas Vitalicias', icon: 'annuity', zona: 'estrategia', desc: 'Pricing del día, competencia SCOMP, sensibilidades e histórico de emisión', tabs: ['Pricing del día', 'Competencia SCOMP', 'Sensibilidades', 'Histórico de emisión'] },
   { id: 'relval', nombre: 'Relative Value', icon: 'scale', zona: 'estrategia', desc: 'Screener de spreads, pares con históricos e ideas de la mesa', tabs: ['Screener de spreads', 'Pares e históricos', 'Ideas y watchlist'] },
   { id: 'optimizacion', nombre: 'Optimización', icon: 'target', zona: 'estrategia', desc: 'Frontera eficiente, asignación propuesta y restricciones de la última corrida', tabs: ['Frontera y propuesta', 'Actual vs. óptimo', 'Restricciones', 'Corridas'] },
-  { id: 'politicas', nombre: 'Políticas', icon: 'policy', zona: 'gobierno', desc: 'Política de inversión vigente, límites y versiones', tabs: ['Vigente', 'Límites parametrizados', 'Versiones'] },
+  { id: 'politicas', nombre: 'Políticas', icon: 'policy', zona: 'gobierno', desc: 'Catálogo de políticas de inversión, límites y versiones', tabs: ['Catálogo', 'Ficha de política', 'Límites parametrizados', 'Versiones'] },
   { id: 'procedimientos', nombre: 'Procedimientos', icon: 'procedures', zona: 'gobierno', desc: 'Repositorio de procedimientos del ciclo de inversiones', tabs: ['Por área', 'Vigencias'] },
   { id: 'faq', nombre: 'FAQ', icon: 'faq', zona: 'gobierno', desc: 'Preguntas frecuentes y glosario de términos', tabs: ['Categorías', 'Glosario'] },
 ];
@@ -990,13 +993,14 @@ function vCumplimiento() {
           }).join('')}</tbody>
         </table></div>
       </div>
-      ${sourceFootnote(['Cálculo Quant sobre posiciones del custodio', 'Parámetros: Política de inversión v4.2'])}`;
+      ${sourceFootnote(['Cálculo Quant sobre posiciones del custodio', 'Parámetros: catálogo de Políticas'])}`;
   }
 
   if (tab === 'Detalle por norma') {
     const l = LIMITES.find(x => x.id === state.limiteId) || LIMITES[0];
     const e = semEstado(l.uso);
     const f = factor();
+    const polOrigen = politicaDeLimite(l.id);
     const posiciones = POSICIONES.filter(p => l.posiciones.includes(p.id));
     const totPos = posiciones.reduce((s, p) => s + p.valor, 0);
     return `
@@ -1023,7 +1027,7 @@ function vCumplimiento() {
             <div class="card-sub" style="margin-bottom:6px">Evolución del uso · últimos 6 meses</div>
             ${Charts.lineChart(['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'], [{ name: 'Uso', color: e === 'ok' ? '#379B94' : e === 'warn' ? '#B47300' : '#B3261E', points: l.hist, area: true }], { height: 150 })}
           </div>
-          <div class="footnote"><button class="btn ghost" data-action="goto" data-module="politicas" data-tab="Límites parametrizados">Ver en Política de inversión ${icon('arrow', 12)}</button></div>
+          <div class="footnote">${polOrigen ? `<button class="btn ghost" data-action="politica" data-id="${polOrigen.id}">Ver en ${polOrigen.titulo} (${polOrigen.codigo}) ${icon('arrow', 12)}</button>` : `<button class="btn ghost" data-action="goto" data-module="politicas" data-tab="Límites parametrizados">Ver en Políticas ${icon('arrow', 12)}</button>`}</div>
         </div>
         <div class="card" style="padding:6px 10px">
           <div class="card-header" style="padding:10px 8px 0"><span class="card-title">Posiciones que contribuyen</span>
@@ -1039,7 +1043,7 @@ function vCumplimiento() {
           </table></div>` : '<div class="card-sub" style="padding:14px 8px">Este límite se calcula sobre agregados de la cartera y las reservas técnicas, no sobre posiciones individuales.</div>'}
         </div>
       </div>
-      ${sourceFootnote(['Cálculo Quant', 'Política de inversión v4.2 · NCG 152'])}`;
+      ${sourceFootnote(['Cálculo Quant', polOrigen ? `${polOrigen.codigo} · NCG 152` : 'Catálogo de Políticas · NCG 152'])}`;
   }
 
   // Histórico
@@ -1061,86 +1065,183 @@ function vCumplimiento() {
 /* ============================================================
    MÓDULO: POLÍTICAS
    ============================================================ */
+function politicaLimiteRows(pol, f) {
+  return pol.limites.map(item => {
+    if (item.limiteId) {
+      const l = LIMITES.find(x => x.id === item.limiteId);
+      const e = semEstado(l.uso);
+      return `<div class="alert-row" data-action="limite" data-id="${l.id}">
+        <span class="sem-dot ${e}"></span>
+        <div><div class="alert-name">${l.nombre}</div><div class="alert-norm">${l.norma} · tope ${l.limite}</div></div>
+        <div class="alert-metrics">
+          <div class="progress"><div class="${e}" style="width:${Math.min(l.uso, 100)}%"></div></div>
+          <span class="alert-usage">${pct(l.uso)}</span>
+        </div>
+      </div>`;
+    }
+    return `<div class="alert-row" data-action="goto" data-module="${item.modulo}" data-tab="${item.tab}">
+      <span class="sem-dot ok"></span>
+      <div><div class="alert-name">${item.nombre}</div><div class="alert-norm">Umbral interno · tope ${item.tope}</div></div>
+      <div class="alert-metrics"><span class="meta-chip">Ver módulo</span></div>
+    </div>`;
+  }).join('');
+}
+
 function vPoliticas() {
   const tab = activeTab('politicas');
+  const f = factor();
 
-  if (tab === 'Vigente') {
+  if (tab === 'Catálogo') {
+    const q = state.politicaQ.toLowerCase();
+    const list = POLITICAS.filter(p => !q || (p.titulo + p.codigo + p.area + p.resumen).toLowerCase().includes(q));
+    const porArea = {};
+    list.forEach(p => (porArea[p.area] = porArea[p.area] || []).push(p));
     return `
+      <div class="filter-bar">
+        <input class="search-input" id="pol-q" placeholder="Buscar política, código o área…" value="${state.politicaQ}" style="width:320px">
+        <span class="filter-chip-count">${list.length} de ${POLITICAS.length} políticas</span>
+      </div>
+      ${Object.entries(porArea).map(([area, ps]) => `
+        <div class="card mt-14">
+          <div class="card-header"><span class="card-title">${area}</span><span class="card-sub">${ps.length} documento${ps.length > 1 ? 's' : ''}</span></div>
+          ${ps.map(p => `
+            <div class="doc-item clickable" data-action="politica" data-id="${p.id}">
+              <div class="doc-icon">${icon('policy', 17)}</div>
+              <div>
+                <div class="doc-name">${p.titulo}</div>
+                <div class="doc-meta">${p.codigo} · ${p.version} · vigente desde ${p.vigencia}</div>
+                <div class="doc-meta" style="margin-top:2px">${p.resumen}</div>
+              </div>
+              <div class="doc-right">
+                <span class="status-pill ok">${p.estado}</span>
+                <span style="color:var(--ml-blue)">${icon('arrow', 14)}</span>
+              </div>
+            </div>`).join('')}
+        </div>`).join('') || '<div class="card mt-14" style="text-align:center;color:var(--text-3);padding:30px">Sin resultados para la búsqueda.</div>'}
+      ${sourceFootnote(['Repositorio documental Gerencia de Inversiones'])}`;
+  }
+
+  if (tab === 'Ficha de política') {
+    if (!state.politicaId) {
+      return `
+        <div class="card">
+          <div class="card-header"><span class="card-title">Selecciona una política</span>
+            <span class="card-sub">desde el Catálogo, la búsqueda global (⌘K) o esta lista</span></div>
+          ${POLITICAS.map(p => `
+            <div class="alert-row" data-action="politica" data-id="${p.id}">
+              <div><div class="alert-name">${p.titulo}</div><div class="alert-norm">${p.codigo} · ${p.area} · ${p.version}</div></div>
+              <div class="alert-metrics"><span class="status-pill ok" style="width:auto">${p.estado}</span></div>
+            </div>`).join('')}
+        </div>`;
+    }
+    const p = POLITICAS.find(x => x.id === state.politicaId);
+    return `
+      <button class="back-link" data-action="tab" data-module="politicas" data-tab="Catálogo">${icon('back', 13)} Volver al catálogo</button>
       <div class="grid two">
         <div class="card">
           <div class="card-header">
-            <span class="card-title">Política de Inversión — ${POLITICA.version}</span>
-            <span class="status-pill ok">Vigente</span>
+            <span class="card-title">${p.titulo}</span>
             <span class="spacer"></span>
-            <button class="btn" data-action="export" data-what="Política de inversión ${POLITICA.version} (PDF)">${icon('export', 13)} PDF</button>
+            <button class="btn" data-action="export" data-what="${p.codigo} — ${p.titulo} (${p.version}, PDF)">${icon('export', 13)} PDF</button>
+          </div>
+          <div class="ficha-chips" style="margin:2px 0 14px">
+            <span class="meta-chip">${p.codigo}</span>
+            <span class="meta-chip">${p.area}</span>
+            <span class="status-pill ok">${p.estado} · ${p.version}</span>
           </div>
           <div class="metric-grid">
-            <div class="metric-cell"><div class="m-label">Vigencia desde</div><div class="m-value" style="font-size:13px">${POLITICA.vigencia}</div></div>
-            <div class="metric-cell"><div class="m-label">Aprobada por</div><div class="m-value" style="font-size:13px">${POLITICA.aprobadaPor}</div></div>
-            <div class="metric-cell"><div class="m-label">Próxima revisión</div><div class="m-value" style="font-size:13px">${POLITICA.proximaRevision}</div></div>
+            <div class="metric-cell"><div class="m-label">Vigencia desde</div><div class="m-value" style="font-size:13px">${p.vigencia}</div></div>
+            <div class="metric-cell"><div class="m-label">Aprobada por</div><div class="m-value" style="font-size:13px">${p.aprobadaPor}</div></div>
+            <div class="metric-cell"><div class="m-label">Próxima revisión</div><div class="m-value" style="font-size:13px">${p.proximaRevision}</div></div>
           </div>
           <div class="mt-14">
             <div class="card-sub" style="margin-bottom:6px">Objetivo</div>
-            <div style="font-size:12.5px;color:var(--text-2);line-height:1.6">${POLITICA.objetivo}</div>
+            <div style="font-size:12.5px;color:var(--text-2);line-height:1.6">${p.objetivo}</div>
           </div>
           <div class="mt-14">
             <div class="card-sub" style="margin-bottom:6px">Principios rectores</div>
-            ${POLITICA.principios.map((p, i) => `<div style="display:flex;gap:10px;padding:6px 0;font-size:12.5px;color:var(--text-2)">
-              <span style="color:var(--ml-blue);font-weight:800">${i + 1}.</span><span style="line-height:1.5">${p}</span></div>`).join('')}
+            ${p.principios.map((pr, i) => `<div style="display:flex;gap:10px;padding:6px 0;font-size:12.5px;color:var(--text-2)">
+              <span style="color:var(--ml-blue);font-weight:800">${i + 1}.</span><span style="line-height:1.5">${pr}</span></div>`).join('')}
+          </div>
+          <div class="mt-14">
+            <div class="card-sub" style="margin-bottom:6px">Módulos que gobierna</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              ${p.modulos.map(m => `<button class="btn ghost" data-action="goto" data-module="${m.modulo}" data-tab="${m.tab}">${m.label} ${icon('arrow', 12)}</button>`).join('')}
+            </div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Estado de cumplimiento de la política</span>
-            <span class="spacer"></span>
-            <button class="btn ghost" data-action="goto" data-module="cumplimiento" data-tab="Semáforo de límites">Ver Cumplimiento ${icon('arrow', 12)}</button>
+        <div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Límites y umbrales de esta política</span>
+              <span class="spacer"></span>
+              <button class="btn ghost" data-action="goto" data-module="cumplimiento" data-tab="Semáforo de límites">Ver Cumplimiento ${icon('arrow', 12)}</button>
+            </div>
+            ${politicaLimiteRows(p, f)}
+            <div class="footnote">Vínculo bidireccional: cada límite enlaza a su estado actual en Cumplimiento, y viceversa.</div>
           </div>
-          ${LIMITES.filter(l => l.tipo === 'Política interna').map(l => {
-            const e = semEstado(l.uso);
-            return `<div class="alert-row" data-action="limite" data-id="${l.id}">
-              <span class="sem-dot ${e}"></span>
-              <div><div class="alert-name">${l.nombre}</div><div class="alert-norm">${l.norma} · tope ${l.limite}</div></div>
-              <div class="alert-metrics">
-                <div class="progress"><div class="${e}" style="width:${Math.min(l.uso, 100)}%"></div></div>
-                <span class="alert-usage">${pct(l.uso)}</span>
-              </div>
-            </div>`;
-          }).join('')}
-          <div class="footnote">Vínculo bidireccional: cada límite de la política enlaza a su estado actual en Cumplimiento, y viceversa.</div>
+          <div class="card mt-14">
+            <div class="card-header"><span class="card-title">Historial de versiones</span><span class="card-sub">${p.codigo}</span></div>
+            <div class="timeline mt-14">
+              ${p.versiones.map(v => `
+                <div class="tl-item ${v.estado === 'Vigente' ? 'current' : ''}">
+                  <div class="tl-title">${v.version}
+                    <span class="status-pill ${v.estado === 'Vigente' ? 'ok' : 'neutral'}">${v.estado}</span></div>
+                  <div class="tl-meta">Vigencia desde ${v.vigencia}</div>
+                  <div class="tl-desc">${v.cambios}</div>
+                </div>`).join('')}
+            </div>
+          </div>
         </div>
-      </div>`;
+      </div>
+      ${sourceFootnote(['Repositorio documental Gerencia de Inversiones'])}`;
   }
 
   if (tab === 'Límites parametrizados') {
+    const rows = POLITICAS.flatMap(p => p.limites.map(item => ({ pol: p, item })));
     return `
       <div class="card" style="padding:6px 10px">
-        <div class="card-header" style="padding:10px 8px 0"><span class="card-title">Límites parametrizados en la política ${POLITICA.version}</span>
-          <span class="card-sub">cada fila enlaza a su estado actual en Cumplimiento</span></div>
+        <div class="card-header" style="padding:10px 8px 0"><span class="card-title">Límites y umbrales parametrizados</span>
+          <span class="card-sub">${rows.length} entradas en ${POLITICAS.length} políticas · enlazan a su estado actual en Cumplimiento</span></div>
         <div class="table-wrap"><table class="data">
-          <thead><tr><th>Límite</th><th>Origen</th><th>Tope</th><th>Estado actual</th><th class="num">Uso</th><th></th></tr></thead>
-          <tbody>${LIMITES.map(l => {
-            const e = semEstado(l.uso);
-            return `<tr class="clickable" data-action="limite" data-id="${l.id}">
-              <td><div class="cell-main">${l.nombre}</div><div class="cell-sub">${l.norma}</div></td>
-              <td><span class="ccy-chip">${l.tipo === 'Regulatorio CMF' ? 'CMF' : 'Interna'}</span></td>
-              <td>${l.limite}</td>
-              <td><span class="status-pill ${e}"><span class="sem-dot ${e}"></span>${semLabel(e)}</span></td>
-              <td class="num" style="font-weight:700">${pct(l.uso)}</td>
+          <thead><tr><th>Límite / umbral</th><th>Política de origen</th><th>Origen normativo</th><th>Tope</th><th>Estado actual</th><th class="num">Uso</th><th></th></tr></thead>
+          <tbody>${rows.map(({ pol, item }) => {
+            if (item.limiteId) {
+              const l = LIMITES.find(x => x.id === item.limiteId);
+              const e = semEstado(l.uso);
+              return `<tr class="clickable" data-action="limite" data-id="${l.id}">
+                <td><div class="cell-main">${l.nombre}</div><div class="cell-sub">${l.norma}</div></td>
+                <td><span class="meta-chip">${pol.codigo}</span></td>
+                <td><span class="ccy-chip">${l.tipo === 'Regulatorio CMF' ? 'CMF' : 'Interna'}</span></td>
+                <td>${l.limite}</td>
+                <td><span class="status-pill ${e}"><span class="sem-dot ${e}"></span>${semLabel(e)}</span></td>
+                <td class="num" style="font-weight:700">${pct(l.uso)}</td>
+                <td style="color:var(--ml-blue)">${icon('arrow', 13)}</td></tr>`;
+            }
+            return `<tr class="clickable" data-action="goto" data-module="${item.modulo}" data-tab="${item.tab}">
+              <td><div class="cell-main">${item.nombre}</div><div class="cell-sub">Umbral interno</div></td>
+              <td><span class="meta-chip">${pol.codigo}</span></td>
+              <td><span class="ccy-chip">Interna</span></td>
+              <td>${item.tope}</td>
+              <td><span class="status-pill ok"><span class="sem-dot ok"></span>Monitoreado</span></td>
+              <td class="num">—</td>
               <td style="color:var(--ml-blue)">${icon('arrow', 13)}</td></tr>`;
           }).join('')}</tbody>
         </table></div>
       </div>`;
   }
 
-  // Versiones
+  // Versiones — timeline combinado de todas las políticas
+  const eventos = POLITICAS.flatMap(p => p.versiones.map(v => ({ ...v, pol: p })))
+    .sort((a, b) => b.vigencia.split('-').reverse().join('').localeCompare(a.vigencia.split('-').reverse().join('')));
   return `
     <div class="card">
-      <div class="card-header"><span class="card-title">Historial de versiones</span><span class="card-sub">versionado con fecha de vigencia</span></div>
+      <div class="card-header"><span class="card-title">Historial de versiones · todas las políticas</span><span class="card-sub">${eventos.length} versiones registradas, orden cronológico</span></div>
       <div class="timeline mt-14">
-        ${VERSIONES_POLITICA.map(v => `
-          <div class="tl-item ${v.estado === 'Vigente' ? 'current' : ''}">
-            <div class="tl-title">Política de Inversión ${v.version}
+        ${eventos.map(v => `
+          <div class="tl-item ${v.estado === 'Vigente' ? 'current' : ''} clickable" data-action="politica" data-id="${v.pol.id}">
+            <div class="tl-title">${v.pol.titulo} — ${v.version}
               <span class="status-pill ${v.estado === 'Vigente' ? 'ok' : 'neutral'}">${v.estado}</span></div>
-            <div class="tl-meta">Vigencia desde ${v.vigencia}</div>
+            <div class="tl-meta">${v.pol.codigo} · vigencia desde ${v.vigencia}</div>
             <div class="tl-desc">${v.cambios}</div>
           </div>`).join('')}
       </div>
@@ -1498,7 +1599,8 @@ function vRrvv() {
         </table></div>
       </div>
       <div class="footnote"><span class="meta-chip">Margen = tasa de reinversión − tasa de venta − gastos, en pb</span>
-        <span class="meta-chip src">Gobernanza del dato: pricing oficial actuarial (pregunta abierta #14 del PRD)</span></div>
+        <span class="meta-chip src">Gobernanza del dato: pricing oficial actuarial (pregunta abierta #14 del PRD)</span>
+        <button class="btn ghost" data-action="politica" data-id="POL-06">Ver Política de Pricing RRVV (INV-10) ${icon('arrow', 12)}</button></div>
       ${sourceFootnote(['Sistema actuarial (pricing)', 'SCOMP', 'Market data (curvas)'])}`;
   }
 
@@ -1717,8 +1819,8 @@ function vOptimizacion() {
           }).join('')}</tbody>
         </table></div>
       </div>
-      <div class="footnote"><span class="meta-chip">Drill-down: cada restricción regulatoria enlaza a su límite en Cumplimiento y a su norma en Políticas</span></div>
-      ${sourceFootnote(['Optimizador (Estudios)', 'Política de inversión v4.2'])}`;
+      <div class="footnote"><button class="btn ghost" data-action="politica" data-id="POL-07">Ver Política de Gestión Activa y Relative Value (INV-11) ${icon('arrow', 12)}</button></div>
+      ${sourceFootnote(['Optimizador (Estudios)', 'POL-01 · POL-07'])}`;
   }
 
   // Corridas
@@ -1765,6 +1867,7 @@ function bindViewInputs() {
   bind('#pos-group', e => { state.filtros.groupBy = e.target.value; render(); }, 'change');
   bind('#sel-limite', e => { state.limiteId = e.target.value; render(); }, 'change');
   bind('#proc-q', e => { state.procQ = e.target.value; rerenderKeepFocus('#proc-q'); });
+  bind('#pol-q', e => { state.politicaQ = e.target.value; rerenderKeepFocus('#pol-q'); });
 }
 
 function rerenderKeepFocus(sel) {
@@ -1815,6 +1918,7 @@ document.addEventListener('click', e => {
   if (a === 'tab') { state.tabs[el.dataset.module] = el.dataset.tab; goTo(el.dataset.module); }
   if (a === 'ficha') { state.fichaId = el.dataset.id; state.tabs.cartera = 'Ficha instrumento'; goTo('cartera'); }
   if (a === 'limite') { state.limiteId = el.dataset.id; state.tabs.cumplimiento = 'Detalle por norma'; goTo('cumplimiento'); }
+  if (a === 'politica') { state.politicaId = el.dataset.id; state.tabs.politicas = 'Ficha de política'; goTo('politicas'); }
   if (a === 'vista') { state.vista = el.dataset.v; renderContextbar(); render(); }
   if (a === 'faq-toggle') el.closest('.faq-item').classList.toggle('open');
   if (a === 'open-palette') openPalette();
@@ -1861,6 +1965,10 @@ function paletteItems() {
   LIMITES.forEach(l => items.push({
     group: 'Límites', label: l.nombre, sub: `${l.norma} · uso ${pct(l.uso)}`, tag: 'LIM',
     run: () => { state.limiteId = l.id; state.tabs.cumplimiento = 'Detalle por norma'; goTo('cumplimiento'); }
+  }));
+  POLITICAS.forEach(p => items.push({
+    group: 'Políticas', label: p.titulo, sub: `${p.codigo} · ${p.area} · ${p.version}`, tag: 'POL',
+    run: () => { state.politicaId = p.id; state.tabs.politicas = 'Ficha de política'; goTo('politicas'); }
   }));
   PROCEDIMIENTOS.forEach(p => items.push({
     group: 'Documentos', label: p.nombre, sub: `${p.id} · ${p.area}`, tag: 'DOC',

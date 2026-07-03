@@ -4,7 +4,7 @@
 
 ## Resumen
 
-El prototipo cubre el 100% de la arquitectura de información del [PRD v1.2](PRD_Quant_MetLife_Chile.md): 14 módulos en 4 zonas (Monitoreo, ALM & Derivados, Estrategia & Pricing, Gobierno), con context bar global (cartera / fecha de corte / CLP-UF-USD / benchmark), command palette ⌘K, toggle Ejecutiva/Analista, drill-down consistente, exportación contextual y deep-linking por URL. Sin build ni dependencias: HTML/CSS/JS puro servido estático.
+El prototipo cubre el 100% de la arquitectura de información del [PRD v1.3](PRD_Quant_MetLife_Chile.md): 14 módulos en 4 zonas (Monitoreo, ALM & Derivados, Estrategia & Pricing, Gobierno), con context bar global (cartera / fecha de corte / CLP-UF-USD / benchmark), command palette ⌘K, toggle Ejecutiva/Analista, drill-down consistente, exportación contextual, deep-linking por URL y login con SSO simulado. Sin build ni dependencias: HTML/CSS/JS puro servido estático.
 
 ## Hecho
 
@@ -12,7 +12,8 @@ El prototipo cubre el 100% de la arquitectura de información del [PRD v1.2](PRD
 |---|---|
 | Fase 1 — Monitoreo (Inicio, Cartera, Resultados, Cumplimiento) | ✅ Completo con data sintética |
 | Fase 1 — ALM base (Proyecciones, Modelos: Calce/TSA/Valorización) | ✅ Completo |
-| Fase 1 — Gobierno (Políticas, Procedimientos, FAQ/Glosario) | ✅ Completo |
+| Fase 1 — Gobierno (Procedimientos, FAQ/Glosario) | ✅ Completo |
+| Gobierno documental — **catálogo de 7 políticas** (Catálogo · Ficha de política · Límites parametrizados · Versiones), cada una con dueño, comité aprobador, límites propios y versionado independiente | ✅ Completo (v1.3, corrige el modelo de política única) |
 | Fase 1.5 — Derivados & Colateral (posiciones, calce con derivados, estrés → colaterales, CSA) | ✅ Completo |
 | Fase 1.5 — Liquidez (buckets/haircuts, estrés 12M en veces, fuentes y usos 90d) | ✅ Completo |
 | Fase 1.5 — Rentas Vitalicias (pricing por producto, SCOMP, sensibilidades, histórico) | ✅ Completo |
@@ -20,9 +21,9 @@ El prototipo cubre el 100% de la arquitectura de información del [PRD v1.2](PRD
 | Fase 1.5 — Optimización (frontera, actual vs. óptimo, restricciones → Cumplimiento, corridas) | ✅ Completo |
 | Transversales (context bar, ⌘K, conciliación, semáforos, export CSV contextual, deep-links) | ✅ Completo |
 | Login con SSO simulado (roles Analista/Ejecutivo → vista por defecto, sesión por pestaña, logout) | ✅ Completo (demo; SSO real pendiente de IdP) |
-| PRD actualizado a v1.2 (zonas, módulos nuevos, integraciones, preguntas abiertas #10–14) | ✅ En el repo |
+| PRD actualizado a v1.3 (catálogo de políticas, login) | ✅ En el repo |
 
-Verificación: los 14 módulos y sus ~45 sub-tabs renderizan sin errores de consola en CLP, UF y USD; conversión validada (MM$ 6.920.850 ≈ 176.358 M UF ≈ 7.404 MM US$).
+Verificación: los 14 módulos y sus ~48 sub-tabs (incl. 7 fichas de política) renderizan sin errores de consola en CLP, UF y USD; conversión validada (MM$ 6.920.850 ≈ 176.358 M UF ≈ 7.404 MM US$); los 12 límites de Cumplimiento quedan enlazados a exactamente su política de origen.
 
 ## Decisiones de diseño relevantes
 
@@ -30,6 +31,7 @@ Verificación: los 14 módulos y sus ~45 sub-tabs renderizan sin errores de cons
 - **Patrón "ejercicio"** común a los módulos de mesa: resultado titular con semáforo → detalle → supuestos (fecha + responsable) → historial de corridas.
 - Los estreses viven **junto a lo que estresan** (colaterales en Derivados, liquidez en Liquidez).
 - Quant **no calcula**: muestra resultados versionados de motores existentes (actuarial, ALM, optimizador).
+- **La gobernanza documental es un catálogo, no una página**: cada política tiene dueño, comité aprobador y versionado propio (patrón catálogo → ficha, igual que Cartera → Ficha instrumento y Cumplimiento → Detalle por norma).
 
 ## Pendiente / próximos pasos
 

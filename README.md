@@ -1,6 +1,6 @@
 # Quant — Portal de Inversiones · MetLife Chile (MVP)
 
-Prototipo funcional (Fase 1 + Fase 1.5, solo lectura) del portal descrito en el [PRD v1.2](PRD_Quant_MetLife_Chile.md), con **data 100% sintética**. Estado actual en [STATUS.md](STATUS.md).
+Prototipo funcional (Fase 1 + Fase 1.5, solo lectura) del portal descrito en el [PRD v1.3](PRD_Quant_MetLife_Chile.md), con **data 100% sintética**. Estado actual en [STATUS.md](STATUS.md).
 
 ## Cómo correrlo
 
@@ -19,7 +19,7 @@ python3 -m http.server 4173
   - **Monitoreo** (diario): Inicio · Cartera · Resultados · Cumplimiento.
   - **ALM & Derivados**: Proyecciones · Modelos (Calce/TSA) · **Derivados & Colateral** (posiciones, calce con derivados, estrés MTM → llamados de margen vs. colateral, CSA) · **Liquidez** (buckets con haircut, estrés 12M, fuentes y usos).
   - **Estrategia & Pricing** (comités): **Rentas Vitalicias** (pricing del día, SCOMP, sensibilidades, histórico) · **Relative Value** (screener de spreads con z-scores, pares, ideas) · **Optimización** (frontera eficiente, actual vs. óptimo, restricciones enlazadas a Cumplimiento, corridas).
-  - **Gobierno**: Políticas · Procedimientos · FAQ + Glosario.
+  - **Gobierno**: **Políticas** (catálogo de 7 documentos por área — general, riesgo de crédito, derivados, liquidez, ALM, pricing RRVV, relative value — cada uno con ficha, límites asociados y versionado propio) · Procedimientos · FAQ + Glosario.
 - **Patrón "ejercicio"** en los módulos de mesa: resultado con semáforo → detalle → supuestos → historial de corridas; fila de estado de ejercicios en Inicio.
 - **Login con SSO simulado**: pantalla de inicio de sesión con branding MetLife, ingreso rápido demo como Analista o Ejecutivo (define la vista por defecto), sesión persistente en la pestaña y cierre de sesión desde el sidebar.
 - **Context bar global** (patrón Bloomberg PORT): cartera, fecha de corte, moneda CLP/UF/USD y benchmark; recalcula todas las vistas. Incluye indicador de conciliación (patrón Clearwater).

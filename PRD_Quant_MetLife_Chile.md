@@ -5,13 +5,14 @@
 |---|---|
 | **Producto** | Quant — Portal web de inteligencia y gestión de cartera |
 | **Cliente interno** | Gerencia de Inversiones, MetLife Chile |
-| **Versión del documento** | 1.2 — incorpora la **capa de mesa y ALM avanzado** (rentas vitalicias, derivados y colaterales, liquidez, relative value, optimización) y la reorganización de la navegación en cuatro zonas |
+| **Versión del documento** | 1.3 — corrige el modelo de gobierno documental: Políticas pasa de un documento único a un **catálogo de políticas**, y agrega login corporativo |
 | **Fecha** | Julio 2026 |
 | **Estado** | MVP (Fase 1) construido como prototipo navegable · Fase 1.5 en definición |
 | **Idioma del producto** | Español (Chile) como principal; inglés como secundario para reporting corporativo |
 
 **Changelog**
-- **v1.2 (jul 2026):** se agregan los módulos Rentas Vitalicias, Derivados & Colateral, Liquidez, Relative Value y Optimización (Fase 1.5); el sidebar pasa de 2 a 4 zonas organizadas por ritmo de trabajo; nuevas integraciones (SCOMP, sistema de derivados/tesorería, pricing actuarial) y nuevas preguntas abiertas.
+- **v1.3 (jul 2026):** el módulo Políticas se rediseña como **catálogo de documentos** (Política General, Riesgo de Crédito y Contraparte, Uso de Derivados y Cobertura, Gestión de Liquidez, Calce ALM, Pricing RRVV, Gestión Activa y Relative Value), cada uno con dueño, comité aprobador, límites asociados y versionado propio; se agrega pantalla de login (SSO simulado) previa al portal.
+- **v1.2:** se agregan los módulos Rentas Vitalicias, Derivados & Colateral, Liquidez, Relative Value y Optimización (Fase 1.5); el sidebar pasa de 2 a 4 zonas organizadas por ritmo de trabajo; nuevas integraciones (SCOMP, sistema de derivados/tesorería, pricing actuarial) y nuevas preguntas abiertas.
 - **v1.1:** arquitectura UX basada en benchmarking de vendors (Aladdin, Bloomberg PORT, Clearwater).
 
 ---
@@ -161,7 +162,7 @@ Reglas de diseño de la zonificación:
 | **Rentas Vitalicias** *(nuevo)* | Pricing del día · Competencia SCOMP · Sensibilidades · Histórico de emisión | Estrategia & Pricing | Ambas | Pricing desks aseguradoras |
 | **Relative Value** *(nuevo)* | Screener de spreads · Pares e históricos · Ideas y watchlist | Estrategia & Pricing | Analista | FactSet screeners |
 | **Optimización** *(nuevo)* | Frontera y propuesta · Actual vs. óptimo · Restricciones · Corridas | Estrategia & Pricing | Ambas | Aladdin portfolio construction |
-| **Políticas** | Vigente · Límites parametrizados · Versiones | Gobierno | Ambas | Vinculada a Cumplimiento |
+| **Políticas** | Catálogo · Ficha de política · Límites parametrizados · Versiones | Gobierno | Ambas | Vinculada a Cumplimiento |
 | **Procedimientos** | Por área · Vigencias | Gobierno | Ambas | Knowledge base |
 | **FAQ** | Categorías · Glosario | Gobierno | Ambas | — |
 
@@ -197,7 +198,17 @@ Prioridad: **P0** = imprescindible · **P1** = mejora importante · **P2** = fut
 ### 7.6 Cumplimiento
 *(sin cambios — semáforo, detalle por norma, histórico)* **(v1.2)** Se agregan como límites monitoreables los umbrales internos de las nuevas áreas: buffer mínimo de colateral, ratio mínimo de cobertura de liquidez y descalce máximo post-derivados.
 
-### 7.7 Políticas · 7.8 Procedimientos · 7.9 FAQ
+### 7.7 Políticas — actualizado en v1.3
+La gobernanza de inversiones **no es un documento único**: es un cuerpo de políticas, cada una con su propio dueño, comité aprobador y versionado. El módulo se organiza como catálogo, no como página fija.
+
+- **[P0]** **Catálogo:** listado de todas las políticas vigentes, agrupado por área dueña (Inversiones, Riesgo, Tesorería, Actuarial, Comercial), con código, versión, estado y resumen; buscador por título/código/área.
+- **[P0]** **Ficha de política:** por documento — objetivo, principios rectores, metadata (vigencia, aprobada por, próxima revisión), **límites y umbrales asociados** (enlace bidireccional con Cumplimiento) y los módulos operativos que gobierna.
+- **[P0]** **Versionado por documento:** cada política mantiene su propio historial de versiones con fecha de vigencia y resumen de cambios — no un versionado único para todo el cuerpo normativo.
+- **[P0]** **Límites parametrizados (vista agregada):** tabla cruzada de todos los límites/umbrales de todas las políticas, con columna de "política de origen", filtrable y enlazada a Cumplimiento.
+- **[P1]** Timeline combinado de versiones de todas las políticas, para auditar "qué cambió y cuándo" a nivel de todo el cuerpo normativo.
+- Documentos de referencia (ver §10 para detalle de cada uno): Política General de Inversiones (INV-01), Riesgo de Crédito y Contraparte (INV-02), Uso de Derivados y Cobertura (INV-08), Gestión de Liquidez (INV-09), Calce de Activos y Pasivos/ALM (INV-05), Pricing y Tarificación de Rentas Vitalicias (INV-10), Gestión Activa y Relative Value (INV-11).
+
+### 7.8 Procedimientos · 7.9 FAQ
 *(sin cambios)*
 
 ### 7.10 Transversales

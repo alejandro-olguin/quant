@@ -5,12 +5,13 @@
 |---|---|
 | **Producto** | Quant — Portal web de inteligencia y gestión de cartera |
 | **Cliente interno** | Gerencia de Inversiones, MetLife Chile |
-| **Versión del documento** | 1.3 — corrige el modelo de gobierno documental: Políticas pasa de un documento único a un **catálogo de políticas**, y agrega login corporativo |
+| **Versión del documento** | 1.4 — incorpora el modelo de **plataforma extensible**: vistas construidas por usuarios, galería de módulos y flujo de propuestas de la comunidad |
 | **Fecha** | Julio 2026 |
 | **Estado** | MVP (Fase 1) construido como prototipo navegable · Fase 1.5 en definición |
 | **Idioma del producto** | Español (Chile) como principal; inglés como secundario para reporting corporativo |
 
 **Changelog**
+- **v1.4 (jul 2026):** Quant se define como **plataforma extensible**, no solo portal: los usuarios construyen sus propias vistas con un catálogo de widgets ("Mi espacio"), sugieren nuevas secciones que la comunidad vota, y una galería muestra todos los módulos con dueño, madurez (Oficial/Beta) y adopción. La UI se prepara para escalar a muchas secciones: zonas del sidebar colapsables y pestañas con overflow.
 - **v1.3 (jul 2026):** el módulo Políticas se rediseña como **catálogo de documentos** (Política General, Riesgo de Crédito y Contraparte, Uso de Derivados y Cobertura, Gestión de Liquidez, Calce ALM, Pricing RRVV, Gestión Activa y Relative Value), cada uno con dueño, comité aprobador, límites asociados y versionado propio; se agrega pantalla de login (SSO simulado) previa al portal.
 - **v1.2:** se agregan los módulos Rentas Vitalicias, Derivados & Colateral, Liquidez, Relative Value y Optimización (Fase 1.5); el sidebar pasa de 2 a 4 zonas organizadas por ritmo de trabajo; nuevas integraciones (SCOMP, sistema de derivados/tesorería, pricing actuarial) y nuevas preguntas abiertas.
 - **v1.1:** arquitectura UX basada en benchmarking de vendors (Aladdin, Bloomberg PORT, Clearwater).
@@ -165,10 +166,33 @@ Reglas de diseño de la zonificación:
 | **Políticas** | Catálogo · Ficha de política · Límites parametrizados · Versiones | Gobierno | Ambas | Vinculada a Cumplimiento |
 | **Procedimientos** | Por área · Vigencias | Gobierno | Ambas | Knowledge base |
 | **FAQ** | Categorías · Glosario | Gobierno | Ambas | — |
+| **Explorar y proponer** *(v1.4)* | Galería de módulos · Propuestas · Mis vistas | Mi espacio | Ambas | App gallery (ServiceNow/Grafana) |
+| **Vistas del usuario** *(v1.4)* | — (composición libre de widgets) | Mi espacio | Quien la crea | Dashboards Grafana/Looker |
 
 > **Patrón "ejercicio" (transversal a los módulos nuevos):** cada ejercicio recurrente expone (1) un **resultado titular** con semáforo, (2) el detalle navegable, (3) los **supuestos e insumos** con fecha y responsable, y (4) el **historial de corridas**. Es el mismo contrato UX del módulo Modelos, extendido.
 
 > **Nota de diseño chileno/seguros:** se mantienen CLP/UF/USD con conversión visible, calce ALM, inversiones representativas y límites CMF. Se agregan: **SCOMP** como referencia competitiva de pricing de RRVV, **CSA/colaterales** para derivados y la normativa CMF de derivados (a validar con Compliance, §11).
+
+### 6.3 Plataforma extensible — nuevo en v1.4
+
+Quant no es un conjunto cerrado de pantallas: es una **plataforma sobre la que los usuarios construyen**. El diseño asume desde el inicio que habrá muchas más secciones de las que el equipo de producto puede (o debe) construir centralmente, y que el contenido correcto emerge de la mesa. Tres mecanismos:
+
+**1. Mi espacio — vistas construidas por el usuario.**
+Zona propia del sidebar donde cada usuario compone dashboards a partir de un **catálogo de widgets** curados (KPIs y paneles que reusan los datos y gráficos oficiales del portal). Sin código, sin tickets: nombre + selección de widgets. Las vistas personales respetan la context bar global (cartera, corte, moneda) igual que los módulos oficiales — un widget nunca muestra un número distinto al del módulo del que proviene (misma fuente, misma fecha de corte).
+
+**2. Galería de módulos — el catálogo visible.**
+Todos los módulos publicados, con **dueño de contenido**, **madurez** (Oficial / Beta) y **adopción** (uso semanal). Hace explícito quién responde por cada sección y qué tan viva está — la base para decidir qué se gradúa, qué se fusiona y qué se retira. Sin esta señal, una plataforma extensible degenera en un cementerio de pestañas.
+
+**3. Propuestas de la comunidad — el pipeline de nuevas secciones.**
+Cualquier usuario sugiere una sección (qué problema resuelve, qué área la usaría, de qué fuentes salen los datos). Las propuestas se **votan** y el comité de producto revisa las más votadas cada mes. Ciclo de vida: **Propuesta → En revisión → Aprobada → Publicada** (aparece en la galería como Beta). Una vista personal también puede proponerse al catálogo común — el camino natural de "lo que me armé yo" a "módulo del equipo".
+
+**Reglas de UI para escalar a muchas pestañas:**
+- **Zonas del sidebar colapsables** con contador — el usuario ve solo las zonas que usa; una zona nueva no empuja a las demás fuera de la vista.
+- **Máximo 4–5 módulos oficiales por zona**; el crecimiento va a Mi espacio o a nuevas zonas aprobadas, no a listas infinitas.
+- **Pestañas con overflow horizontal** dentro de cada módulo; la búsqueda global (⌘K) indexa vistas personales y propuestas además de los módulos.
+- **La galería es el mapa**: cuando el sidebar ya no alcanza para "descubrir", Explorar es el punto de entrada canónico.
+
+**Gobernanza (el contrapeso de la flexibilidad):** el contenido oficial sigue siendo curado. Una vista personal no pasa a la galería sin dueño asignado, fuente de datos validada y revisión del comité de producto. La fuente única de verdad no se negocia: los widgets consumen las mismas series que los módulos oficiales, nunca datos cargados a mano.
 
 ---
 
@@ -247,10 +271,28 @@ La gobernanza de inversiones **no es un documento único**: es un cuerpo de pol�
 - **[P1]** **Corridas:** historial de corridas con supuestos (retornos esperados, matriz de covarianzas), responsable y comparación entre versiones.
 - **[P2]** Optimización interactiva (editar restricciones y re-optimizar) — Fase 3.
 
+### 7.16 Explorar y proponer *(nuevo — v1.4)*
+- **[P0]** **Galería de módulos:** tarjetas de todos los módulos publicados con dueño de contenido, madurez (Oficial/Beta), adopción semanal y acceso directo; punto de entrada canónico cuando el sidebar ya no alcanza para descubrir.
+- **[P0]** **Propuestas de la comunidad:** cola de secciones sugeridas con votos, estado del ciclo de vida (Propuesta → En revisión → Aprobada → Publicada), autor, área y fecha.
+  - *Given* un usuario con una necesidad no cubierta, *when* envía una propuesta (nombre, área, problema que resuelve, fuentes de datos), *then* la propuesta queda visible y votable por toda la comunidad, sin pasar por un ticket de TI.
+- **[P1]** Notificación al autor cuando su propuesta cambia de estado; comentarios sobre propuestas.
+
+### 7.17 Vistas personalizadas — "Mi espacio" *(nuevo — v1.4)*
+- **[P0]** **Builder de vistas:** crear una vista propia con nombre, descripción y selección de widgets del catálogo (KPIs y paneles); la vista aparece en la zona "Mi espacio" del sidebar y es indexada por ⌘K.
+- **[P0]** **Coherencia de datos:** todo widget respeta la context bar global (cartera, fecha de corte, moneda) y consume las mismas series que el módulo oficial del que proviene — nunca muestra un número distinto.
+- **[P0]** **Proponer al catálogo:** una vista personal puede enviarse como propuesta a la cola de la comunidad (§7.16).
+- **[P1]** Reordenar widgets (drag & drop), compartir una vista con otro usuario, duplicar una vista existente.
+- **[P2]** Widgets con parámetros propios (ej. fijar una clase de activo) y widgets de fuentes externas curadas.
+
+### 7.18 Gobernanza del contenido extensible *(nuevo — v1.4)*
+- **[P0]** **Ciclo de madurez:** todo módulo publicado tiene dueño de contenido y estado (Beta → Oficial tras un ciclo de feedback); la adopción semanal es visible en la galería como insumo para graduar, fusionar o retirar secciones.
+- **[P0]** **Curaduría:** solo el comité de producto publica en la galería; una vista personal no se convierte en módulo sin dueño asignado y fuente de datos validada.
+- **[P1]** Reporte trimestral de higiene del catálogo: módulos con adopción bajo umbral se marcan para revisión.
+
 ---
 
 ## 8. Requerimientos no funcionales
-*(sin cambios respecto de v1.1: rendimiento <3 s, SSO y cifrado, disponibilidad 99,5% hábil, WCAG/ADA, responsivo desktop-first, escalabilidad hacia Fase 2, linaje de datos.)* **(v1.2)** Los resultados de ejercicios (pricing, estreses, optimización) deben almacenarse **versionados e inmutables** por corrida, para auditoría de comités.
+*(sin cambios respecto de v1.1: rendimiento <3 s, SSO y cifrado, disponibilidad 99,5% hábil, WCAG/ADA, responsivo desktop-first, escalabilidad hacia Fase 2, linaje de datos.)* **(v1.2)** Los resultados de ejercicios (pricing, estreses, optimización) deben almacenarse **versionados e inmutables** por corrida, para auditoría de comités. **(v1.4)** Las definiciones de vistas personales se almacenan por usuario en el backend (el prototipo usa almacenamiento local del navegador); el catálogo de widgets es versionado para que una vista no se rompa cuando un widget evoluciona.
 
 ---
 
@@ -330,6 +372,8 @@ La gobernanza de inversiones **no es un documento único**: es un cuerpo de pol�
 | 12 | **(v1.2)** ¿Qué motor genera las corridas de optimización y en qué formato exporta? | Inversiones / Estudios | Sí (F1.5) |
 | 13 | **(v1.2)** ¿Umbrales internos de buffer de colateral y cobertura de liquidez — existen en política o hay que definirlos? | Riesgo / Tesorería | Sí (F1.5) |
 | 14 | **(v1.2)** ¿El pricing de RRVV mostrado es el vigente oficial (fuente actuarial) o una propuesta de la mesa? Gobernanza del dato. | Actuarial / Inversiones | Sí (F1.5) |
+| 15 | **(v1.4)** ¿Quién conforma el comité de producto que revisa propuestas y gradúa módulos Beta → Oficial? ¿Con qué cadencia? | Inversiones / Producto | No |
+| 16 | **(v1.4)** ¿Las vistas personales pueden incluir datos sensibles restringidos por rol? Matriz de permisos a nivel de widget. | Riesgo / TI | Sí (antes de habilitar builder) |
 
 ---
 

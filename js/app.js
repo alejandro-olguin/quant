@@ -101,6 +101,11 @@ function icon(name, s = 16) {
     annuity: '<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/><path d="M9.5 16.5h5"/>',
     scale: '<path d="M12 4v16"/><path d="M5 7h14"/><path d="M5 7l-2.5 5.5a3 3 0 0 0 5 0z"/><path d="M19 7l-2.5 5.5a3 3 0 0 0 5 0z"/><path d="M9 20h6"/>',
     target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.8"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
+    grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><path d="M16.5 13.5v6M13.5 16.5h6"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    up: '<path d="M12 19V6"/><path d="M6 12l6-6 6 6"/>',
+    trash: '<path d="M4 7h16"/><path d="M9 7V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2"/><path d="M6.5 7l1 13h9l1-13"/><path d="M10 11v5M14 11v5"/>',
+    widget: '<rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 10h16M10 10v10"/>',
   };
   return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name] || ''}</svg>`;
 }
@@ -111,6 +116,7 @@ const ZONAS = [
   { id: 'alm', label: 'ALM & Derivados' },
   { id: 'estrategia', label: 'Estrategia & Pricing' },
   { id: 'gobierno', label: 'Gobierno' },
+  { id: 'plataforma', label: 'Mi espacio' },
 ];
 
 const MODULES = [
@@ -128,11 +134,36 @@ const MODULES = [
   { id: 'politicas', nombre: 'Políticas', icon: 'policy', zona: 'gobierno', desc: 'Catálogo de políticas de inversión, límites y versiones', tabs: ['Catálogo', 'Ficha de política', 'Límites parametrizados', 'Versiones'] },
   { id: 'procedimientos', nombre: 'Procedimientos', icon: 'procedures', zona: 'gobierno', desc: 'Repositorio de procedimientos del ciclo de inversiones', tabs: ['Por área', 'Vigencias'] },
   { id: 'faq', nombre: 'FAQ', icon: 'faq', zona: 'gobierno', desc: 'Preguntas frecuentes y glosario de términos', tabs: ['Categorías', 'Glosario'] },
+  { id: 'explorar', nombre: 'Explorar y proponer', icon: 'grid', zona: 'plataforma', desc: 'Galería de módulos del portal, propuestas de la comunidad y tus vistas personalizadas', tabs: ['Galería de módulos', 'Propuestas', 'Mis vistas'] },
 ];
+
+/* ---------- Vistas personalizadas del usuario (localStorage) ---------- */
+function customViews() {
+  try { return JSON.parse(localStorage.getItem('quant_views')) || []; } catch (e) { return []; }
+}
+function saveCustomViews(v) { localStorage.setItem('quant_views', JSON.stringify(v)); }
+function customView(id) { return customViews().find(v => v.id === id); }
+
+/* Propuestas: base sintética + las del usuario + votos (localStorage) */
+function userProposals() {
+  try { return JSON.parse(localStorage.getItem('quant_proposals')) || []; } catch (e) { return []; }
+}
+function saveUserProposals(p) { localStorage.setItem('quant_proposals', JSON.stringify(p)); }
+function allProposals() { return [...userProposals(), ...PROPUESTAS_BASE]; }
+function userVotes() {
+  try { return JSON.parse(localStorage.getItem('quant_votes')) || {}; } catch (e) { return {}; }
+}
+function saveUserVotes(v) { localStorage.setItem('quant_votes', JSON.stringify(v)); }
+
+/* Zonas colapsadas del sidebar (localStorage) */
+function collapsedZones() {
+  try { return JSON.parse(localStorage.getItem('quant_zones')) || {}; } catch (e) { return {}; }
+}
+function saveCollapsedZones(z) { localStorage.setItem('quant_zones', JSON.stringify(z)); }
 
 function activeTab(mod) {
   const m = MODULES.find(x => x.id === mod);
-  if (!m.tabs.length) return null;
+  if (!m || !m.tabs.length) return null;
   return state.tabs[mod] || m.tabs[0];
 }
 
@@ -140,11 +171,40 @@ function activeTab(mod) {
    SIDEBAR + CONTEXT BAR
    ============================================================ */
 function renderSidebar() {
-  const zone = z => MODULES.filter(m => m.zona === z).map(m => `
+  const collapsed = collapsedZones();
+  const views = customViews();
+
+  const modItem = m => `
     <button class="nav-item ${state.module === m.id ? 'active' : ''}" data-action="nav" data-module="${m.id}">
       ${icon(m.icon, 17)}<span>${m.nombre}</span>
       ${m.id === 'cumplimiento' && alertas().length ? `<span class="nav-badge">${alertas().length}</span>` : ''}
-    </button>`).join('');
+    </button>`;
+
+  const zoneHtml = z => {
+    const mods = MODULES.filter(m => m.zona === z.id);
+    const extra = z.id === 'plataforma' ? views.length : 0;
+    const isCollapsed = !!collapsed[z.id];
+    let items = '';
+    if (!isCollapsed) {
+      if (z.id === 'plataforma') {
+        items += views.map(v => `
+          <button class="nav-item ${state.module === 'mi:' + v.id ? 'active' : ''}" data-action="nav" data-module="mi:${v.id}">
+            <span class="custom-dot"></span><span>${v.nombre}</span>
+          </button>`).join('');
+      }
+      items += mods.map(modItem).join('');
+      if (z.id === 'plataforma') {
+        items += `<button class="nav-item add-view" data-action="open-builder">${icon('plus', 15)}<span>Nueva vista</span></button>`;
+      }
+    }
+    return `
+      <button class="nav-zone-toggle ${isCollapsed ? 'collapsed' : ''}" data-action="toggle-zone" data-zone="${z.id}">
+        <span>${z.label}</span>
+        ${isCollapsed ? `<span class="zone-count">${mods.length + extra}</span>` : ''}
+        <span class="zone-chev">${icon('down', 11)}</span>
+      </button>
+      ${items}`;
+  };
 
   $('#sidebar').innerHTML = `
     <div class="brand">
@@ -155,10 +215,7 @@ function renderSidebar() {
       </div>
     </div>
     <nav class="nav-section">
-      ${ZONAS.map((z, i) => `
-        ${i ? '<div class="nav-divider"></div>' : ''}
-        <div class="nav-label">${z.label}</div>
-        ${zone(z.id)}`).join('')}
+      ${ZONAS.map((z, i) => `${i ? '<div class="nav-divider"></div>' : ''}${zoneHtml(z)}`).join('')}
     </nav>
     <div class="sidebar-footer">
       <div class="user-chip">
@@ -1840,16 +1897,336 @@ function vOptimizacion() {
 }
 
 /* ============================================================
+   PLATAFORMA — catálogo de widgets para vistas personalizadas
+   Cada widget reusa data y gráficos del portal; tipo 'kpi' va en la
+   fila superior, tipo 'card' en la grilla principal.
+   ============================================================ */
+const WIDGETS = [
+  { id: 'w-kpi-total', nombre: 'Valor total de la cartera', grupo: 'Cartera', tipo: 'kpi',
+    render: () => kpiCard('Valor total de la cartera', money(totalCartera()), `${POSICIONES.length} posiciones · ${CARTERAS.find(c => c.id === state.cartera).nombre}`, true, 'cartera', 'Posiciones') },
+  { id: 'w-kpi-ytd', nombre: 'Retorno YTD vs. benchmark', grupo: 'Resultados', tipo: 'kpi',
+    render: () => kpiCard('Retorno YTD', signPct(RETORNO_TOTAL.ytd), `vs. bmk ${signPct(RETORNO_TOTAL.ytd - RETORNO_TOTAL.bmk_ytd)}`, true, 'resultados', 'Retornos') },
+  { id: 'w-kpi-limites', nombre: 'Límites en alerta', grupo: 'Cumplimiento', tipo: 'kpi',
+    render: () => kpiCard('Límites en alerta', `${alertas().length} de ${LIMITES.length}`, 'umbral ámbar ≥ 85% del cupo', alertas().length === 0, 'cumplimiento', 'Semáforo de límites') },
+  { id: 'w-kpi-mtm', nombre: 'MTM neto de derivados', grupo: 'Derivados', tipo: 'kpi',
+    render: () => { const mtm = DERIVADOS.reduce((s, d) => s + d.mtm, 0) * factor(); return kpiCard('MTM neto derivados', money(mtm), `${DERIVADOS.length} contratos vigentes`, mtm >= 0, 'derivados', 'Posiciones'); } },
+  { id: 'w-kpi-liquidez', nombre: 'Cobertura de liquidez', grupo: 'Liquidez', tipo: 'kpi',
+    render: () => { const s = LIQ_ESTRES[LIQ_ESTRES.length - 1]; const c = s.liquidos / s.salidas; return kpiCard('Cobertura liquidez 12M', `${fmt(c, 1)}x`, `combinado severo · mínimo ${fmt(LIQ_COBERTURA_MIN, 1)}x`, c >= LIQ_COBERTURA_MIN * 1.25, 'liquidez', 'Estrés de liquidez'); } },
+  { id: 'w-kpi-rrvv', nombre: 'Margen pricing RRVV', grupo: 'Rentas Vitalicias', tipo: 'kpi',
+    render: () => { const tot = RRVV_PRICING.productos.reduce((s, p) => s + p.ventasMes, 0); const m = RRVV_PRICING.productos.reduce((s, p) => s + p.margen * p.ventasMes, 0) / tot; return kpiCard('Margen RRVV ponderado', `${fmt(m, 0)} pb`, `objetivo ≥ ${RRVV_PRICING.margenObjetivo} pb`, m >= RRVV_PRICING.margenObjetivo, 'rrvv', 'Pricing del día'); } },
+  { id: 'w-retorno-12m', nombre: 'Retorno acumulado 12M vs. benchmark', grupo: 'Resultados', tipo: 'card',
+    render: () => `<div class="card"><div class="card-header"><span class="card-title">Retorno acumulado 12 meses</span>
+      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="resultados" data-tab="vs. Benchmark">Detalle ${icon('arrow', 12)}</button></div>
+      ${Charts.lineChart(SERIE_RETORNO.labels, [
+        { name: 'Cartera', color: '#007ABC', points: SERIE_RETORNO.cartera, area: true },
+        { name: 'Benchmark', color: '#8494A3', points: SERIE_RETORNO.benchmark, dash: true }])}</div>` },
+  { id: 'w-composicion', nombre: 'Composición por clase de activo', grupo: 'Cartera', tipo: 'card',
+    render: () => {
+      const f = factor(), total = totalCartera(), by = {};
+      POSICIONES.forEach(p => by[p.clase] = (by[p.clase] || 0) + p.valor * f);
+      const segs = Object.entries(by).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value, color: CLASE_COLORS[label] }));
+      return `<div class="card"><div class="card-header"><span class="card-title">Composición por clase</span>
+        <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="cartera" data-tab="Composición">Detalle ${icon('arrow', 12)}</button></div>
+        <div class="donut-flex">${Charts.donut(segs, { size: 150, stroke: 23, centerLabel: unitLabel(), centerValue: moneyN(total) })}
+        <div class="chart-legend" style="flex-direction:column;gap:6px">${segs.slice(0, 5).map(s => `<div class="legend-item"><span class="legend-swatch" style="background:${s.color}"></span>${s.label} <b>${pct(s.value / total * 100)}</b></div>`).join('')}</div></div></div>`;
+    } },
+  { id: 'w-semaforo', nombre: 'Semáforo de límites (top 5)', grupo: 'Cumplimiento', tipo: 'card',
+    render: () => `<div class="card"><div class="card-header"><span class="card-title">Límites con mayor uso</span>
+      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="cumplimiento" data-tab="Semáforo de límites">Ver todos ${icon('arrow', 12)}</button></div>
+      ${[...LIMITES].sort((a, b) => b.uso - a.uso).slice(0, 5).map(l => { const e = semEstado(l.uso); return `
+        <div class="alert-row" data-action="limite" data-id="${l.id}"><span class="sem-dot ${e}"></span>
+        <div><div class="alert-name">${l.nombre}</div><div class="alert-norm">${l.norma}</div></div>
+        <div class="alert-metrics"><div class="progress"><div class="${e}" style="width:${Math.min(l.uso, 100)}%"></div></div>
+        <span class="alert-usage">${pct(l.uso)}</span></div></div>`; }).join('')}</div>` },
+  { id: 'w-top-posiciones', nombre: 'Principales posiciones', grupo: 'Cartera', tipo: 'card',
+    render: () => { const f = factor(), tot = POSICIONES.reduce((s, p) => s + p.valor, 0); return `<div class="card">
+      <div class="card-header"><span class="card-title">Principales posiciones</span>
+      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="cartera" data-tab="Posiciones">Ver todas ${icon('arrow', 12)}</button></div>
+      <div class="table-wrap"><table class="data"><thead><tr><th>Instrumento</th><th class="num">Valor (${unitLabel()})</th><th class="num">%</th></tr></thead>
+      <tbody>${[...POSICIONES].sort((a, b) => b.valor - a.valor).slice(0, 6).map(p => `
+        <tr class="clickable" data-action="ficha" data-id="${p.id}"><td><div class="cell-main">${p.nombre}</div><div class="cell-sub">${p.emisor}</div></td>
+        <td class="num">${moneyN(p.valor * f)}</td><td class="num">${pct(p.valor / tot * 100)}</td></tr>`).join('')}</tbody></table></div></div>`; } },
+  { id: 'w-flujos', nombre: 'Flujos proyectados 12M', grupo: 'Proyecciones', tipo: 'card',
+    render: () => { const f = factor(); return `<div class="card"><div class="card-header"><span class="card-title">Flujos proyectados · 12 meses</span>
+      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="proyecciones" data-tab="Flujos y vencimientos">Detalle ${icon('arrow', 12)}</button></div>
+      ${Charts.stackedBars(FLUJOS.labels, [
+        { name: 'Cupones', color: '#007ABC', values: FLUJOS.cupones.map(v => v * f) },
+        { name: 'Amortizaciones', color: '#379B94', values: FLUJOS.amortizaciones.map(v => v * f) }], { fmtVal: v => fmt(v / 1000, 0) + ' mM' })}</div>`; } },
+  { id: 'w-estres-deriv', nombre: 'Estrés de derivados y colateral', grupo: 'Derivados', tipo: 'card',
+    render: () => { const f = factor(); return `<div class="card"><div class="card-header"><span class="card-title">Estrés de derivados → colateral</span>
+      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="derivados" data-tab="Estrés y colaterales">Detalle ${icon('arrow', 12)}</button></div>
+      <div class="table-wrap"><table class="data"><thead><tr><th>Escenario</th><th class="num">ΔMTM</th><th class="num">Llamado</th><th class="num">Buffer</th></tr></thead>
+      <tbody>${ESTRES_DERIV.map(s => { const b = s.llamado ? COLATERAL.disponible / s.llamado : null; return `<tr>
+        <td class="cell-main">${s.escenario}</td>
+        <td class="num" style="color:${s.dMtm >= 0 ? 'var(--ok)' : 'var(--bad)'}">${moneyN(s.dMtm * f)}</td>
+        <td class="num">${s.llamado ? moneyN(s.llamado * f) : '—'}</td>
+        <td class="num" style="font-weight:700">${b ? fmt(b, 1) + 'x' : '—'}</td></tr>`; }).join('')}</tbody></table></div></div>`; } },
+  { id: 'w-calce', nombre: 'Calce por tramo (con derivados)', grupo: 'Modelos', tipo: 'card',
+    render: () => `<div class="card"><div class="card-header"><span class="card-title">Índice de calce por tramo</span>
+      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="derivados" data-tab="Calce con derivados">Detalle ${icon('arrow', 12)}</button></div>
+      ${Charts.groupedBars(CALCE_DERIV.map(t => t.tramo), [
+        { name: 'Sin derivados', color: '#8494A3', values: CALCE_DERIV.map(t => t.sin) },
+        { name: 'Con derivados', color: '#007ABC', values: CALCE_DERIV.map(t => t.con) }], { fmtVal: v => pct(v, 0), height: 200 })}</div>` },
+  { id: 'w-pricing-rrvv', nombre: 'Pricing RRVV por producto', grupo: 'Rentas Vitalicias', tipo: 'card',
+    render: () => `<div class="card"><div class="card-header"><span class="card-title">Pricing RRVV del día</span>
+      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="rrvv" data-tab="Pricing del día">Detalle ${icon('arrow', 12)}</button></div>
+      <div class="table-wrap"><table class="data"><thead><tr><th>Producto</th><th class="num">Tasa venta</th><th class="num">SCOMP</th><th class="num">Margen</th></tr></thead>
+      <tbody>${RRVV_PRICING.productos.map(p => { const e = rrvvSem(p.margen); return `<tr>
+        <td class="cell-main">${p.producto}</td><td class="num" style="font-weight:700">${pct(p.tasaVenta, 2)}</td>
+        <td class="num" style="color:var(--text-3)">${pct(p.scomp, 2)}</td>
+        <td class="num"><span class="status-pill ${e}">${p.margen} pb</span></td></tr>`; }).join('')}</tbody></table></div></div>` },
+  { id: 'w-screener', nombre: 'Relative value — mayores señales', grupo: 'Estrategia', tipo: 'card',
+    render: () => `<div class="card"><div class="card-header"><span class="card-title">Relative value · mayores desviaciones</span>
+      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="relval" data-tab="Screener de spreads">Screener ${icon('arrow', 12)}</button></div>
+      <div class="table-wrap"><table class="data"><thead><tr><th>Eje</th><th class="num">Z-score</th><th>Señal</th></tr></thead>
+      <tbody>${[...RELVAL_SCREENER].sort((a, b) => Math.abs(b.z) - Math.abs(a.z)).slice(0, 5).map(r => { const e = r.senal === 'Barato' ? 'ok' : r.senal === 'Caro' ? 'bad' : 'neutral'; return `<tr>
+        <td class="cell-main">${r.eje}</td><td class="num" style="font-weight:700">${r.z >= 0 ? '+' : '−'}${fmt(Math.abs(r.z), 1)}σ</td>
+        <td><span class="status-pill ${e}">${r.senal}</span></td></tr>`; }).join('')}</tbody></table></div></div>` },
+  { id: 'w-frontera', nombre: 'Frontera eficiente y propuesta', grupo: 'Estrategia', tipo: 'card',
+    render: () => `<div class="card"><div class="card-header"><span class="card-title">Frontera eficiente</span><span class="card-sub">corrida ${OPT.corrida}</span>
+      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="optimizacion" data-tab="Frontera y propuesta">Detalle ${icon('arrow', 12)}</button></div>
+      ${Charts.frontier(OPT.frontera, [
+        { label: 'Actual', vol: OPT.actual.vol, ret: OPT.actual.ret, color: '#8494A3' },
+        { label: 'Propuesta', vol: OPT.propuesto.vol, ret: OPT.propuesto.ret, color: '#007ABC' }], { height: 220 })}</div>` },
+];
+
+function renderCustomView(view) {
+  const kpis = view.widgets.map(id => WIDGETS.find(w => w.id === id)).filter(w => w && w.tipo === 'kpi');
+  const cards = view.widgets.map(id => WIDGETS.find(w => w.id === id)).filter(w => w && w.tipo === 'card');
+  return `
+    <div class="page-header">
+      <div>
+        <div class="page-title">${view.nombre}</div>
+        <div class="page-desc">${view.desc || 'Vista personalizada'} · creada por ${currentUser().nombre} el ${view.creada}</div>
+      </div>
+      <div class="page-actions">
+        <span class="meta-chip"><span class="custom-dot" style="display:inline-block"></span>&nbsp;Vista personal</span>
+        <span class="meta-chip">${icon('clock', 12)} Corte: ${fechaCorteCL()}</span>
+        <button class="btn" data-action="propose-view" data-id="${view.id}">${icon('up', 13)} Proponer al catálogo</button>
+        <button class="btn" data-action="delete-view" data-id="${view.id}">${icon('trash', 13)} Eliminar</button>
+      </div>
+    </div>
+    ${kpis.length ? `<div class="grid kpis">${kpis.map(w => w.render()).join('')}</div>` : ''}
+    ${cards.length ? `<div class="grid two-even mt-14">${cards.map(w => w.render()).join('')}</div>` : ''}
+    ${!view.widgets.length ? '<div class="locked-banner">Esta vista no tiene widgets. Elimínala y crea una nueva.</div>' : ''}
+    <div class="footnote"><span class="meta-chip">Los widgets respetan la barra de contexto (cartera, corte, moneda) igual que los módulos oficiales</span></div>`;
+}
+
+/* ============================================================
+   MÓDULO: EXPLORAR Y PROPONER
+   ============================================================ */
+function estadoPropuesta(e) {
+  return e === 'Propuesta' ? 'neutral' : e === 'En revisión' ? 'warn' : 'ok';
+}
+
+function vExplorar() {
+  const tab = activeTab('explorar');
+
+  if (tab === 'Galería de módulos') {
+    const zonaLabel = id => (ZONAS.find(z => z.id === id) || {}).label || '';
+    return `
+      <div class="filter-bar">
+        <span class="card-sub">Todos los módulos publicados en el portal, con su dueño de contenido y madurez. ¿Falta algo?</span>
+        <span class="filter-chip-count"></span>
+        <button class="btn" data-action="open-suggest">${icon('up', 13)} Sugerir nueva sección</button>
+        <button class="btn primary" data-action="open-builder">${icon('plus', 13)} Crear vista propia</button>
+      </div>
+      <div class="gallery-grid">
+        ${MODULES.filter(m => m.id !== 'explorar').map(m => {
+          const meta = MODULO_META[m.id] || {};
+          return `
+          <div class="mod-card" data-action="nav" data-module="${m.id}">
+            <div class="mc-head">
+              <div class="mc-icon">${icon(m.icon, 17)}</div>
+              <div>
+                <div class="mc-name">${m.nombre}</div>
+                <div class="mc-zone">${zonaLabel(m.zona)}${m.tabs.length ? ` · ${m.tabs.length} pestañas` : ''}</div>
+              </div>
+            </div>
+            <div class="mc-desc">${m.desc}</div>
+            <div class="mc-foot">
+              <span class="badge-estado ${meta.estado === 'Beta' ? 'beta' : 'oficial'}">${meta.estado || 'Oficial'}</span>
+              <span>${meta.owner || ''}</span>
+              <span class="adopt"><span class="progress"><span class="ok" style="display:block;width:${meta.adopcion || 0}%;height:100%"></span></span>${meta.adopcion || 0}%</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="footnote"><span class="meta-chip">Adopción = % de usuarios activos que visitan el módulo cada semana</span>
+        <span class="meta-chip src">Los módulos Beta se gradúan a Oficial tras un ciclo de feedback</span></div>`;
+  }
+
+  if (tab === 'Propuestas') {
+    const votes = userVotes();
+    const props = allProposals().sort((a, b) => (b.votos + (votes[b.id] ? 1 : 0)) - (a.votos + (votes[a.id] ? 1 : 0)));
+    return `
+      <div class="filter-bar">
+        <span class="card-sub">Nuevas secciones sugeridas por usuarios. Las más votadas se priorizan en el roadmap del portal.</span>
+        <span class="filter-chip-count"></span>
+        <button class="btn primary" data-action="open-suggest">${icon('up', 13)} Sugerir nueva sección</button>
+      </div>
+      <div class="card" style="padding:8px 14px">
+        ${props.map(p => {
+          const voted = !!votes[p.id];
+          const total = p.votos + (voted ? 1 : 0);
+          return `
+          <div class="doc-item">
+            <button class="vote-btn ${voted ? 'voted' : ''}" data-action="vote" data-id="${p.id}" title="${voted ? 'Quitar voto' : 'Votar'}">
+              ${icon('up', 13)}${total}
+            </button>
+            <div>
+              <div class="doc-name">${p.titulo}</div>
+              <div class="doc-meta" style="margin-top:3px">${p.detalle}</div>
+              <div class="doc-meta" style="margin-top:4px">${p.owner} · ${p.area} · ${p.fecha}</div>
+            </div>
+            <div class="doc-right"><span class="status-pill ${estadoPropuesta(p.estado)}">${p.estado}</span></div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="footnote"><span class="meta-chip">Ciclo de vida: Propuesta → En revisión (comité de producto mensual) → Aprobada → Publicada en la galería</span></div>`;
+  }
+
+  // Mis vistas
+  const views = customViews();
+  return `
+    <div class="filter-bar">
+      <span class="card-sub">Vistas que construiste con el catálogo de widgets. Solo tú las ves, salvo que las propongas al catálogo.</span>
+      <span class="filter-chip-count">${views.length} vista${views.length === 1 ? '' : 's'}</span>
+      <button class="btn primary" data-action="open-builder">${icon('plus', 13)} Crear vista propia</button>
+    </div>
+    ${views.length ? `<div class="gallery-grid">
+      ${views.map(v => `
+        <div class="mod-card" data-action="nav" data-module="mi:${v.id}">
+          <div class="mc-head">
+            <div class="mc-icon custom">${icon('widget', 17)}</div>
+            <div><div class="mc-name">${v.nombre}</div><div class="mc-zone">Mi espacio · ${v.widgets.length} widgets</div></div>
+          </div>
+          <div class="mc-desc">${v.desc || 'Vista personalizada.'}</div>
+          <div class="mc-foot">
+            <span class="badge-estado personal">Personal</span>
+            <span>creada el ${v.creada}</span>
+          </div>
+        </div>`).join('')}
+    </div>` : `
+    <div class="locked-banner">
+      ${icon('widget', 22)}
+      <div><b>Aún no tienes vistas personalizadas.</b><br>
+      Crea la tuya combinando ${WIDGETS.length} widgets de cartera, resultados, cumplimiento, derivados, liquidez, RRVV y estrategia — sin escribir código ni pedir un desarrollo.</div>
+    </div>`}`;
+}
+
+/* ============================================================
+   MODALES: builder de vistas y sugerencia de sección
+   ============================================================ */
+function openModal(html) { $('#modal').innerHTML = html; $('#modal-overlay').classList.remove('hidden'); }
+function closeModal() { $('#modal-overlay').classList.add('hidden'); }
+
+function openBuilder() {
+  const grupos = {};
+  WIDGETS.forEach(w => (grupos[w.grupo] = grupos[w.grupo] || []).push(w));
+  openModal(`
+    <div class="modal-title">Nueva vista personalizada</div>
+    <div class="modal-sub">Combina widgets del catálogo para armar tu propio dashboard. La vista respeta la barra de contexto global (cartera, fecha de corte, moneda) igual que los módulos oficiales.</div>
+    <label class="form-label" for="bv-nombre">Nombre de la vista</label>
+    <input id="bv-nombre" class="form-input" placeholder="ej. Mi apertura de mercado" maxlength="40">
+    <label class="form-label" for="bv-desc">Descripción (opcional)</label>
+    <input id="bv-desc" class="form-input" placeholder="ej. Lo primero que reviso cada mañana antes del comité" maxlength="90">
+    <label class="form-label">Widgets (${WIDGETS.length} disponibles)</label>
+    ${Object.entries(grupos).map(([g, ws]) => `
+      <div class="widget-group-label">${g}</div>
+      ${ws.map(w => `
+        <label class="widget-pick" data-widget="${w.id}">
+          <input type="checkbox" value="${w.id}">
+          <span class="wp-name">${w.nombre}</span>
+          <span class="wp-type">${w.tipo === 'kpi' ? 'KPI' : 'PANEL'}</span>
+        </label>`).join('')}`).join('')}
+    <div class="modal-actions">
+      <button class="btn" data-action="close-modal">Cancelar</button>
+      <button class="btn primary" data-action="save-view">${icon('check', 13)} Crear vista</button>
+    </div>`);
+  $('#modal').querySelectorAll('.widget-pick input').forEach(cb =>
+    cb.addEventListener('change', () => cb.closest('.widget-pick').classList.toggle('selected', cb.checked)));
+  $('#bv-nombre').focus();
+}
+
+function saveViewFromBuilder() {
+  const nombre = $('#bv-nombre').value.trim();
+  const widgets = [...$('#modal').querySelectorAll('.widget-pick input:checked')].map(cb => cb.value);
+  if (!nombre) { toast('Ponle un nombre a la vista.'); $('#bv-nombre').focus(); return; }
+  if (!widgets.length) { toast('Selecciona al menos un widget.'); return; }
+  const views = customViews();
+  const id = 'v' + Date.now().toString(36);
+  views.push({ id, nombre, desc: $('#bv-desc').value.trim(), widgets, creada: fechaCorteCL() });
+  saveCustomViews(views);
+  closeModal();
+  state.module = 'mi:' + id;
+  syncHash(); renderSidebar(); render();
+  toast(`Vista "${nombre}" creada con ${widgets.length} widgets — disponible en Mi espacio`);
+}
+
+function openSuggest() {
+  openModal(`
+    <div class="modal-title">Sugerir una nueva sección</div>
+    <div class="modal-sub">Tu propuesta entra a la cola de la comunidad, donde otros usuarios pueden votarla. El comité de producto revisa las más votadas cada mes.</div>
+    <label class="form-label" for="sg-titulo">Nombre de la sección</label>
+    <input id="sg-titulo" class="form-input" placeholder="ej. Panel de emisiones primarias" maxlength="60">
+    <label class="form-label" for="sg-area">Área que la usaría</label>
+    <select id="sg-area" class="form-input">
+      <option>Mesa de Inversiones</option><option>Riesgo</option><option>Tesorería</option>
+      <option>Actuarial</option><option>Alternativos</option><option>Alta gerencia</option>
+    </select>
+    <label class="form-label" for="sg-detalle">¿Qué problema resuelve? ¿Qué datos necesita?</label>
+    <textarea id="sg-detalle" class="form-textarea" placeholder="Describe el ejercicio o reporte que hoy haces a mano, con qué frecuencia, y de qué fuentes salen los datos."></textarea>
+    <div class="modal-actions">
+      <button class="btn" data-action="close-modal">Cancelar</button>
+      <button class="btn primary" data-action="save-suggest">${icon('up', 13)} Enviar propuesta</button>
+    </div>`);
+  $('#sg-titulo').focus();
+}
+
+function saveSuggestion() {
+  const titulo = $('#sg-titulo').value.trim();
+  const detalle = $('#sg-detalle').value.trim();
+  if (!titulo) { toast('Ponle un nombre a la sección propuesta.'); $('#sg-titulo').focus(); return; }
+  const props = userProposals();
+  props.unshift({
+    id: 'PU-' + Date.now().toString(36), titulo,
+    detalle: detalle || 'Sin descripción.',
+    owner: currentUser().nombre, area: $('#sg-area').value,
+    votos: 0, estado: 'Propuesta', fecha: fechaCorteCL(),
+  });
+  saveUserProposals(props);
+  const votes = userVotes();
+  votes[props[0].id] = true;  // el autor parte votando su propuesta
+  saveUserVotes(votes);
+  closeModal();
+  state.tabs.explorar = 'Propuestas';
+  goTo('explorar');
+  toast(`Propuesta "${titulo}" enviada a la cola de la comunidad`);
+}
+
+/* ============================================================
    RENDER PRINCIPAL
    ============================================================ */
 const VIEWS = {
   inicio: vInicio, cartera: vCartera, resultados: vResultados,
   proyecciones: vProyecciones, modelos: vModelos, cumplimiento: vCumplimiento,
   derivados: vDerivados, liquidez: vLiquidez, rrvv: vRrvv, relval: vRelval, optimizacion: vOptimizacion,
-  politicas: vPoliticas, procedimientos: vProcedimientos, faq: vFaq,
+  politicas: vPoliticas, procedimientos: vProcedimientos, faq: vFaq, explorar: vExplorar,
 };
 
 function render() {
+  // Vistas personalizadas del usuario (module id "mi:<id>")
+  if (state.module.startsWith('mi:')) {
+    const view = customView(state.module.slice(3));
+    if (view) {
+      $('#main').innerHTML = renderCustomView(view);
+      $('#main').scrollTop = 0;
+      return;
+    }
+    state.module = 'explorar';
+    state.tabs.explorar = 'Mis vistas';
+  }
   const m = MODULES.find(x => x.id === state.module);
   const exportBtn = ['cartera', 'resultados', 'cumplimiento', 'proyecciones', 'derivados', 'liquidez', 'rrvv', 'relval', 'optimizacion'].includes(m.id)
     ? `<button class="btn primary" data-action="export" data-what="${m.nombre} — vista actual">${icon('export', 13)} Exportar</button>` : '';
@@ -1896,6 +2273,7 @@ function readHash() {
   const h = location.hash.slice(1);
   if (!h) return;
   const [mod, tab] = h.split('/');
+  if (mod.startsWith('mi:') && customView(mod.slice(3))) { state.module = mod; return; }
   if (MODULES.some(m => m.id === mod)) {
     state.module = mod;
     if (tab) {
@@ -1924,7 +2302,44 @@ document.addEventListener('click', e => {
   if (a === 'open-palette') openPalette();
   if (a === 'export') doExport(el.dataset.what);
   if (a === 'logout') doLogout();
+  // Plataforma extensible
+  if (a === 'toggle-zone') {
+    const z = collapsedZones();
+    z[el.dataset.zone] = !z[el.dataset.zone];
+    saveCollapsedZones(z);
+    renderSidebar();
+  }
+  if (a === 'open-builder') openBuilder();
+  if (a === 'save-view') saveViewFromBuilder();
+  if (a === 'open-suggest') openSuggest();
+  if (a === 'save-suggest') saveSuggestion();
+  if (a === 'close-modal') closeModal();
+  if (a === 'vote') {
+    const votes = userVotes();
+    votes[el.dataset.id] = !votes[el.dataset.id];
+    if (!votes[el.dataset.id]) delete votes[el.dataset.id];
+    saveUserVotes(votes);
+    render();
+  }
+  if (a === 'delete-view') {
+    const views = customViews().filter(v => v.id !== el.dataset.id);
+    saveCustomViews(views);
+    state.module = 'explorar'; state.tabs.explorar = 'Mis vistas';
+    syncHash(); renderSidebar(); render();
+    toast('Vista eliminada de Mi espacio');
+  }
+  if (a === 'propose-view') {
+    const v = customView(el.dataset.id);
+    if (v) {
+      const props = userProposals();
+      props.unshift({ id: 'PU-' + Date.now().toString(36), titulo: v.nombre, detalle: `Vista personalizada con ${v.widgets.length} widgets propuesta para el catálogo común. ${v.desc || ''}`.trim(), owner: currentUser().nombre, area: 'Mi espacio', votos: 0, estado: 'Propuesta', fecha: fechaCorteCL() });
+      saveUserProposals(props);
+      toast(`"${v.nombre}" propuesta al catálogo — visible en Explorar → Propuestas`);
+    }
+  }
 });
+
+$('#modal-overlay').addEventListener('click', e => { if (e.target.id === 'modal-overlay') closeModal(); });
 
 /* ---------- Exportación contextual ---------- */
 function doExport(what) {
@@ -1974,6 +2389,18 @@ function paletteItems() {
     group: 'Documentos', label: p.nombre, sub: `${p.id} · ${p.area}`, tag: 'DOC',
     run: () => goTo('procedimientos', 'Por área')
   }));
+  customViews().forEach(v => items.push({
+    group: 'Mi espacio', label: v.nombre, sub: `Vista personal · ${v.widgets.length} widgets`, tag: 'MÍA',
+    run: () => goTo('mi:' + v.id)
+  }));
+  items.push(
+    { group: 'Mi espacio', label: 'Crear vista personalizada', sub: `Combina ${WIDGETS.length} widgets del catálogo`, tag: '+', run: () => openBuilder() },
+    { group: 'Mi espacio', label: 'Sugerir nueva sección', sub: 'Entra a la cola de propuestas de la comunidad', tag: '+', run: () => openSuggest() },
+  );
+  allProposals().forEach(p => items.push({
+    group: 'Propuestas', label: p.titulo, sub: `${p.owner} · ${p.area} · ${p.estado}`, tag: 'PRO',
+    run: () => goTo('explorar', 'Propuestas')
+  }));
   return items;
 }
 
@@ -2010,6 +2437,7 @@ function renderPalette(q) {
 
 document.addEventListener('keydown', e => {
   if (!document.body.classList.contains('authed')) return;
+  if (e.key === 'Escape' && !$('#modal-overlay').classList.contains('hidden')) { closeModal(); return; }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); return; }
   if ($('#palette-overlay').classList.contains('hidden')) return;
   const matches = window.__paletteMatches || [];

@@ -4,7 +4,7 @@
 
 ## Resumen
 
-El prototipo cubre el 100% de la arquitectura de información del [PRD v1.3](PRD_Quant_MetLife_Chile.md): 14 módulos en 4 zonas (Monitoreo, ALM & Derivados, Estrategia & Pricing, Gobierno), con context bar global (cartera / fecha de corte / CLP-UF-USD / benchmark), command palette ⌘K, toggle Ejecutiva/Analista, drill-down consistente, exportación contextual, deep-linking por URL y login con SSO simulado. Sin build ni dependencias: HTML/CSS/JS puro servido estático.
+El prototipo cubre el 100% de la arquitectura de información del [PRD v1.4](PRD_Quant_MetLife_Chile.md): 15 módulos en 5 zonas (Monitoreo, ALM & Derivados, Estrategia & Pricing, Gobierno, Mi espacio), con context bar global (cartera / fecha de corte / CLP-UF-USD / benchmark), command palette ⌘K, toggle Ejecutiva/Analista, drill-down consistente, exportación contextual, deep-linking por URL, login con SSO simulado y **plataforma extensible** (builder de vistas, galería de módulos, propuestas de la comunidad). Sin build ni dependencias: HTML/CSS/JS puro servido estático.
 
 ## Hecho
 
@@ -21,7 +21,8 @@ El prototipo cubre el 100% de la arquitectura de información del [PRD v1.3](PRD
 | Fase 1.5 — Optimización (frontera, actual vs. óptimo, restricciones → Cumplimiento, corridas) | ✅ Completo |
 | Transversales (context bar, ⌘K, conciliación, semáforos, export CSV contextual, deep-links) | ✅ Completo |
 | Login con SSO simulado (roles Analista/Ejecutivo → vista por defecto, sesión por pestaña, logout) | ✅ Completo (demo; SSO real pendiente de IdP) |
-| PRD actualizado a v1.3 (catálogo de políticas, login) | ✅ En el repo |
+| Plataforma extensible — builder de vistas (16 widgets), zona "Mi espacio" en sidebar, galería de módulos (dueño/madurez/adopción), propuestas de la comunidad con votos y ciclo de vida, zonas colapsables | ✅ Completo (v1.4; persistencia demo en localStorage) |
+| PRD actualizado a v1.4 (plataforma extensible, §6.3 y §7.16–7.18) | ✅ En el repo |
 
 Verificación: los 14 módulos y sus ~48 sub-tabs (incl. 7 fichas de política) renderizan sin errores de consola en CLP, UF y USD; conversión validada (MM$ 6.920.850 ≈ 176.358 M UF ≈ 7.404 MM US$); los 12 límites de Cumplimiento quedan enlazados a exactamente su política de origen.
 
@@ -32,6 +33,7 @@ Verificación: los 14 módulos y sus ~48 sub-tabs (incl. 7 fichas de política) 
 - Los estreses viven **junto a lo que estresan** (colaterales en Derivados, liquidez en Liquidez).
 - Quant **no calcula**: muestra resultados versionados de motores existentes (actuarial, ALM, optimizador).
 - **La gobernanza documental es un catálogo, no una página**: cada política tiene dueño, comité aprobador y versionado propio (patrón catálogo → ficha, igual que Cartera → Ficha instrumento y Cumplimiento → Detalle por norma).
+- **Plataforma, no portal cerrado**: los usuarios construyen vistas con widgets curados (misma fuente y corte que los módulos oficiales), proponen secciones que la comunidad vota, y la galería hace visible dueño/madurez/adopción de cada módulo — la flexibilidad tiene contrapeso de curaduría (Beta → Oficial vía comité de producto).
 
 ## Pendiente / próximos pasos
 
@@ -39,10 +41,11 @@ Verificación: los 14 módulos y sus ~48 sub-tabs (incl. 7 fichas de política) 
 2. Definir stack real (el prototipo es desechable por diseño) y biblioteca de componentes MetLife.
 3. Integraciones de datos reales (custodio, market data, contable, ALM) + capa de conciliación.
 4. SSO corporativo y matriz de roles.
-5. Fase 2: órdenes, rebalanceo (conectado a Optimización e Ideas), workflows de aprobación.
+5. Plataforma extensible: mover vistas personales de localStorage a backend por usuario, matriz de permisos a nivel de widget (pregunta abierta #16), drag & drop y compartir vistas, notificaciones de cambio de estado de propuestas.
+6. Fase 2: órdenes, rebalanceo (conectado a Optimización e Ideas), workflows de aprobación.
 
 ## Cómo correr
 
 ```bash
-python3 -m http.server 4173   # → http://localhost:4173
+node .claude/serve.js   # → http://localhost:4173
 ```

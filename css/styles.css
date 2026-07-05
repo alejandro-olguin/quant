@@ -111,6 +111,34 @@ select, input { font-family: inherit; }
   border-radius: 8px; padding: 1px 6px;
 }
 
+/* Zonas colapsables — el sidebar escala a muchas secciones */
+.nav-zone-toggle {
+  display: flex; align-items: center; gap: 6px;
+  width: 100%; border: 0; background: transparent;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+  color: #7EA4C4; text-transform: uppercase;
+  padding: 8px 10px 6px; text-align: left;
+  border-radius: 6px;
+}
+.nav-zone-toggle:hover { color: #B8D2E6; }
+.nav-zone-toggle .zone-chev { margin-left: auto; transition: transform .15s; opacity: .7; }
+.nav-zone-toggle.collapsed .zone-chev { transform: rotate(-90deg); }
+.nav-zone-toggle .zone-count {
+  font-size: 9px; font-weight: 700;
+  background: rgba(255,255,255,.12); color: #A9C6DD;
+  border-radius: 8px; padding: 1px 6px; letter-spacing: 0;
+}
+.nav-item.add-view {
+  color: #8FB4D2; font-weight: 500;
+  border: 1px dashed rgba(255,255,255,.22);
+  margin-top: 4px;
+}
+.nav-item.add-view:hover { color: #fff; border-color: rgba(255,255,255,.45); background: rgba(255,255,255,.06); }
+.nav-item .custom-dot {
+  width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0;
+  background: var(--ml-green);
+}
+
 .sidebar-footer {
   margin-top: auto;
   padding: 14px 16px;
@@ -230,12 +258,16 @@ input.ctx-select { padding-right: 9px; background-image: none; }
 .btn.primary:hover { background: var(--ml-blue-mid); }
 .btn.ghost { border-color: transparent; color: var(--ml-blue); }
 
-/* Tabs */
+/* Tabs — con overflow horizontal para módulos con muchas pestañas */
 .tabs {
   display: flex; gap: 2px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 18px;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
+.tabs::-webkit-scrollbar { height: 5px; }
+.tab { white-space: nowrap; flex-shrink: 0; }
 .tab {
   border: 0; background: transparent;
   padding: 9px 14px 10px;
@@ -541,6 +573,99 @@ td .mini-progress { display: inline-block; width: 54px; vertical-align: middle; 
 .exec-hero .hero-item { background: rgba(9, 38, 61, .28); border-radius: 9px; padding: 10px 16px; }
 .exec-hero .hero-item .hv { font-size: 17px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
 .exec-hero .hero-item .hl { font-size: 10.5px; font-weight: 600; opacity: .85; text-transform: uppercase; letter-spacing: .6px; }
+
+/* ============ PLATAFORMA (galería, propuestas, builder) ============ */
+.gallery-grid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+.mod-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  cursor: pointer;
+  transition: box-shadow .15s, transform .15s;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.mod-card:hover { box-shadow: 0 4px 16px rgba(16,42,67,.14); transform: translateY(-1px); }
+.mod-card .mc-head { display: flex; align-items: center; gap: 10px; }
+.mod-card .mc-icon {
+  width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+  background: #E8F2FA; color: var(--ml-blue);
+  display: flex; align-items: center; justify-content: center;
+}
+.mod-card .mc-icon.custom { background: #EFF6E3; color: #5B7F1F; }
+.mod-card .mc-name { font-weight: 700; font-size: 13.5px; line-height: 1.25; }
+.mod-card .mc-zone { font-size: 10.5px; color: var(--text-3); font-weight: 600; }
+.mod-card .mc-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; flex: 1; }
+.mod-card .mc-foot { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-3); }
+.mod-card .mc-foot .adopt { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.mod-card .adopt .progress { width: 46px; }
+.badge-estado { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; letter-spacing: .3px; }
+.badge-estado.oficial { background: #E8F2FA; color: var(--ml-blue-mid); }
+.badge-estado.beta { background: #E5F3F2; color: #22766F; }
+.badge-estado.personal { background: #EFF6E3; color: #5B7F1F; }
+
+/* Propuestas */
+.vote-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 46px; height: 46px; flex-shrink: 0;
+  border: 1px solid var(--border); border-radius: 9px;
+  background: var(--surface); color: var(--text-2);
+  font-size: 12.5px; font-weight: 700; gap: 0;
+}
+.vote-btn svg { color: var(--text-3); }
+.vote-btn:hover { border-color: var(--ml-blue-light); color: var(--ml-blue); }
+.vote-btn.voted { background: #EAF4FB; border-color: var(--ml-blue-light); color: var(--ml-blue); }
+.vote-btn.voted svg { color: var(--ml-blue); }
+
+/* Modal genérico */
+#modal-overlay {
+  position: fixed; inset: 0; z-index: 250;
+  background: rgba(14, 34, 53, .45);
+  backdrop-filter: blur(2px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 8vh 20px 20px;
+}
+#modal-overlay.hidden { display: none; }
+#modal {
+  width: 640px; max-width: 100%;
+  max-height: 82vh; overflow-y: auto;
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  padding: 24px 26px;
+}
+.modal-title { font-size: 17px; font-weight: 700; letter-spacing: -.2px; }
+.modal-sub { font-size: 12.5px; color: var(--text-2); margin-top: 4px; line-height: 1.5; }
+.form-label {
+  display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+  color: var(--text-3); margin: 18px 0 6px;
+}
+.form-input, .form-textarea, select.form-input {
+  width: 100%; border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 11px; font-size: 13px; color: var(--text); background: #FBFCFD;
+  font-family: inherit;
+}
+.form-input:focus, .form-textarea:focus { outline: 2px solid #BFDFF3; border-color: var(--ml-blue-light); }
+.form-textarea { resize: vertical; min-height: 70px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+
+/* Builder: selección de widgets */
+.widget-group-label { font-size: 11px; font-weight: 700; color: var(--text-2); margin: 14px 0 4px; }
+.widget-pick {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+  margin-bottom: 6px; cursor: pointer; background: var(--surface);
+  transition: border-color .12s, background .12s;
+}
+.widget-pick:hover { border-color: var(--ml-blue-light); }
+.widget-pick.selected { background: #EAF4FB; border-color: var(--ml-blue-light); }
+.widget-pick input { accent-color: var(--ml-blue); }
+.widget-pick .wp-name { font-size: 12.5px; font-weight: 600; }
+.widget-pick .wp-type { margin-left: auto; font-size: 10px; font-weight: 700; color: var(--text-3); background: #EDF1F5; border-radius: 4px; padding: 1px 6px; }
 
 /* ============ LOGIN (SSO simulado) ============ */
 #login {

@@ -641,3 +641,36 @@ const GLOSARIO = [
   { t: 'Patrimonio de riesgo', d: 'Exigencia patrimonial regulatoria de la aseguradora, determinada por la CMF en función de sus obligaciones y riesgos.' },
   { t: 'Mutuos hipotecarios endosables (MHE)', d: 'Créditos hipotecarios originados por administradoras y endosados a inversionistas institucionales; clase de activo tradicional de aseguradoras de vida chilenas.' },
 ];
+
+/* ============================================================
+   PLATAFORMA EXTENSIBLE — galería, propuestas y vistas de usuario
+   ============================================================ */
+
+/* Metadata de cada módulo para la galería: dueño del contenido,
+   madurez y adopción (uso semanal % de usuarios activos) */
+const MODULO_META = {
+  inicio:         { owner: 'Producto Quant', estado: 'Oficial', adopcion: 98 },
+  cartera:        { owner: 'Producto Quant', estado: 'Oficial', adopcion: 94 },
+  resultados:     { owner: 'Producto Quant', estado: 'Oficial', adopcion: 92 },
+  cumplimiento:   { owner: 'Riesgo · Producto Quant', estado: 'Oficial', adopcion: 88 },
+  proyecciones:   { owner: 'Producto Quant', estado: 'Oficial', adopcion: 81 },
+  modelos:        { owner: 'Actuarial', estado: 'Oficial', adopcion: 76 },
+  derivados:      { owner: 'Tesorería', estado: 'Beta', adopcion: 72 },
+  liquidez:       { owner: 'Tesorería', estado: 'Beta', adopcion: 69 },
+  rrvv:           { owner: 'Actuarial · Comercial', estado: 'Beta', adopcion: 84 },
+  relval:         { owner: 'Mesa de Inversiones', estado: 'Beta', adopcion: 66 },
+  optimizacion:   { owner: 'Estudios', estado: 'Beta', adopcion: 61 },
+  politicas:      { owner: 'Gerencia de Inversiones', estado: 'Oficial', adopcion: 73 },
+  procedimientos: { owner: 'Gerencia de Inversiones', estado: 'Oficial', adopcion: 58 },
+  faq:            { owner: 'Producto Quant', estado: 'Oficial', adopcion: 49 },
+};
+
+/* Propuestas de nuevas secciones hechas por usuarios (demo).
+   Ciclo de vida: Propuesta → En revisión → Aprobada → Publicada */
+const PROPUESTAS_BASE = [
+  { id: 'PR-01', titulo: 'Panel de inversión ESG / sostenibilidad', detalle: 'Exposición de la cartera por score ESG, huella de carbono financiada y alineamiento con la taxonomía local. Insumo para el reporte anual de sostenibilidad.', owner: 'S. Márquez', area: 'Riesgo', votos: 12, estado: 'En revisión', fecha: '18-06-2026' },
+  { id: 'PR-02', titulo: 'Dashboard de crédito privado', detalle: 'Seguimiento de la cartera de deuda privada: covenants, vencimientos, ratings internos y pipeline de originación junto a los fondos existentes.', owner: 'J. Errázuriz', area: 'Alternativos', votos: 15, estado: 'Aprobada — en construcción', fecha: '02-06-2026' },
+  { id: 'PR-03', titulo: 'Monitor de emisiones primarias locales', detalle: 'Calendario de colocaciones de bonos locales con demanda, spreads de emisión y participación de la compañía en cada libro.', owner: 'Mesa RF', area: 'Mesa de Inversiones', votos: 9, estado: 'En revisión', fecha: '24-06-2026' },
+  { id: 'PR-04', titulo: 'Reporte automático comité ALCO', detalle: 'Vista imprimible con el paquete estándar del comité ALCO: calce, TSA, liquidez y colaterales en una sola página exportable.', owner: 'C. Undurraga', area: 'Actuarial', votos: 8, estado: 'Propuesta', fecha: '29-06-2026' },
+  { id: 'PR-05', titulo: 'Tipo de cambio y coberturas intradía', detalle: 'Posición USD intradía con forwards por vencer en la semana y sensibilidad del P&L al movimiento del día.', owner: 'P. Salazar', area: 'Tesorería', votos: 5, estado: 'Propuesta', fecha: '01-07-2026' },
+];

@@ -12,6 +12,7 @@ const state = {
   benchmark: 'compuesto',
   vista: 'ejecutiva',    // ejecutiva | analista
   fichaId: null,
+  edificioId: null,
   limiteId: 'L6',
   politicaId: null,
   politicaQ: '',
@@ -106,36 +107,109 @@ function icon(name, s = 16) {
     up: '<path d="M12 19V6"/><path d="M6 12l6-6 6 6"/>',
     trash: '<path d="M4 7h16"/><path d="M9 7V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2"/><path d="M6.5 7l1 13h9l1-13"/><path d="M10 11v5M14 11v5"/>',
     widget: '<rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 10h16M10 10v10"/>',
+    bond: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.4"/><path d="M6.5 9.5v5M17.5 9.5v5"/>',
+    building: '<path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16"/><path d="M14 21V9h4a1 1 0 0 1 1 1v11"/><path d="M7.5 8h3M7.5 12h3M7.5 16h3M3 21h18"/>',
+    layers: '<path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 16l9 5 9-5"/>',
+    repo: '<path d="M4 12a8 8 0 0 1 13.7-5.6L20 8"/><path d="M20 3.5V8h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16"/><path d="M4 20.5V16h4.5"/>',
   };
-  return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name] || ''}</svg>`;
+  return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name] || paths.widget}</svg>`;
 }
 
-/* ---------- Definición de módulos (4 zonas por ritmo de trabajo) ---------- */
+/* ---------- Zonas del sidebar (taxonomía por función, no por ritmo de trabajo) ----------
+   Buckets generales y de misma altura para que cada módulo tenga un hogar obvio y los
+   módulos nuevos generalicen. La zona de un módulo es obligatoria (ver registerModule). */
 const ZONAS = [
-  { id: 'monitoreo', label: 'Monitoreo' },
-  { id: 'alm', label: 'ALM & Derivados' },
+  { id: 'portafolio', label: 'Cartera' },
+  { id: 'analisis', label: 'Análisis' },
   { id: 'estrategia', label: 'Estrategia & Pricing' },
-  { id: 'gobierno', label: 'Gobierno' },
+  { id: 'riesgo', label: 'Riesgo & Límites' },
+  { id: 'gobierno', label: 'Gobierno & Normativa' },
   { id: 'plataforma', label: 'Mi espacio' },
 ];
 
+/* Cada módulo es una unidad autodescrita (contrato de plug-in):
+   - kind:   'nativo' (vista JS servida con data del proveedor) | 'app' (app externa embebida en iframe, integrada por el equipo responsable)
+   - render: vista JS (kind 'nativo') o { url } de la app embebida (kind 'app')
+   - fuente: origen de los datos ('api' Synapse · 'db' base documental · 'app' backend dinámico)
+   - export/badge: capacidades declaradas (reemplazan whitelists y casos especiales del shell)
+   - owner/estado/adopcion: procedencia y ciclo de vida (Propuesta → En integración → Beta → Oficial)
+   Registrar un módulo = agregar un objeto aquí. El shell (sidebar, tabs, palette, galería,
+   navegación, deep-link, export) lo descubre solo, sin tocar nada más. */
 const MODULES = [
-  { id: 'inicio', nombre: 'Inicio', icon: 'home', zona: 'monitoreo', desc: 'Estado general de la cartera a la fecha de corte', tabs: [] },
-  { id: 'cartera', nombre: 'Cartera', icon: 'portfolio', zona: 'monitoreo', desc: 'Posiciones, composición y movimientos de la cartera', tabs: ['Posiciones', 'Composición', 'Movimientos', 'Ficha instrumento'] },
-  { id: 'resultados', nombre: 'Resultados', icon: 'results', zona: 'monitoreo', desc: 'Retornos, atribución y P&L del período', tabs: ['Retornos', 'Atribución', 'vs. Benchmark', 'P&L'] },
-  { id: 'cumplimiento', nombre: 'Cumplimiento', icon: 'shield', zona: 'monitoreo', desc: 'Monitoreo de límites regulatorios CMF y de política interna', tabs: ['Semáforo de límites', 'Detalle por norma', 'Histórico'] },
-  { id: 'proyecciones', nombre: 'Proyecciones', icon: 'forecast', zona: 'alm', desc: 'Flujos futuros, vencimientos y devengo proyectado', tabs: ['Flujos y vencimientos', 'Devengo proyectado', 'Escenarios'] },
-  { id: 'modelos', nombre: 'Modelos', icon: 'models', zona: 'alm', desc: 'Calce/ALM, TSA y valorización con sus supuestos', tabs: ['Calce / ALM', 'TSA', 'Valorización', 'Supuestos y corridas'] },
-  { id: 'derivados', nombre: 'Derivados & Colateral', icon: 'swap', zona: 'alm', desc: 'Cartera de derivados, efecto en el calce, estrés de MTM y gestión de colaterales', tabs: ['Posiciones', 'Calce con derivados', 'Estrés y colaterales', 'Contrapartes y CSA'] },
-  { id: 'liquidez', nombre: 'Liquidez', icon: 'drop', zona: 'alm', desc: 'Posición de liquidez, ejercicios de estrés y fuentes y usos proyectados', tabs: ['Posición de liquidez', 'Estrés de liquidez', 'Fuentes y usos'] },
-  { id: 'rrvv', nombre: 'Rentas Vitalicias', icon: 'annuity', zona: 'estrategia', desc: 'Pricing del día, competencia SCOMP, sensibilidades e histórico de emisión', tabs: ['Pricing del día', 'Competencia SCOMP', 'Sensibilidades', 'Histórico de emisión'] },
-  { id: 'relval', nombre: 'Relative Value', icon: 'scale', zona: 'estrategia', desc: 'Screener de spreads, pares con históricos e ideas de la mesa', tabs: ['Screener de spreads', 'Pares e históricos', 'Ideas y watchlist'] },
-  { id: 'optimizacion', nombre: 'Optimización', icon: 'target', zona: 'estrategia', desc: 'Frontera eficiente, asignación propuesta y restricciones de la última corrida', tabs: ['Frontera y propuesta', 'Actual vs. óptimo', 'Restricciones', 'Corridas'] },
-  { id: 'politicas', nombre: 'Políticas', icon: 'policy', zona: 'gobierno', desc: 'Catálogo de políticas de inversión, límites y versiones', tabs: ['Catálogo', 'Ficha de política', 'Límites parametrizados', 'Versiones'] },
-  { id: 'procedimientos', nombre: 'Procedimientos', icon: 'procedures', zona: 'gobierno', desc: 'Repositorio de procedimientos del ciclo de inversiones', tabs: ['Por área', 'Vigencias'] },
-  { id: 'faq', nombre: 'FAQ', icon: 'faq', zona: 'gobierno', desc: 'Preguntas frecuentes y glosario de términos', tabs: ['Categorías', 'Glosario'] },
-  { id: 'explorar', nombre: 'Explorar y proponer', icon: 'grid', zona: 'plataforma', desc: 'Galería de módulos del portal, propuestas de la comunidad y tus vistas personalizadas', tabs: ['Galería de módulos', 'Propuestas', 'Mis vistas'] },
+  // Inicio: dashboard suelto, fuera de toda zona (se ancla arriba del sidebar).
+  { id: 'inicio', nombre: 'Inicio', icon: 'home', zona: null, desc: 'Estado general de la cartera a la fecha de corte', tabs: [],
+    kind: 'nativo', render: vInicio, fuente: 'api', owner: 'Producto Quant', estado: 'Oficial', adopcion: 98 },
+  // Cartera: vista consolidada + un módulo por clase de activo con gestión propia.
+  { id: 'cartera', nombre: 'Consolidado', icon: 'portfolio', zona: 'portafolio', desc: 'Posiciones, composición y movimientos de toda la cartera', tabs: ['Posiciones', 'Composición', 'Movimientos', 'Ficha instrumento'],
+    kind: 'nativo', render: vCartera, export: true, fuente: 'api', owner: 'Producto Quant', estado: 'Oficial', adopcion: 94 },
+  { id: 'rentafija', nombre: 'Renta Fija', icon: 'bond', zona: 'portafolio', desc: 'Gestión del libro de renta fija: duración, TIR, rating y composición', tabs: [],
+    kind: 'nativo', render: vRentaFija, export: true, fuente: 'api', owner: 'Mesa de Renta Fija', estado: 'Oficial', adopcion: 90 },
+  { id: 'derivados', nombre: 'Derivados', icon: 'swap', zona: 'portafolio', desc: 'Cartera de derivados y su efecto en el calce (CCS, swaps y forwards)', tabs: ['Posiciones', 'Calce con derivados'],
+    kind: 'nativo', render: vDerivados, export: true, fuente: 'api', owner: 'Tesorería', estado: 'Beta', adopcion: 72 },
+  { id: 'inmobiliario', nombre: 'Inmobiliario', icon: 'building', zona: 'portafolio', desc: 'Gestión inmobiliaria: edificios en renta, mutuos comerciales, leasing y mutuos residenciales', tabs: ['Edificios en renta', 'Mutuos comerciales y leasing', 'Mutuos residenciales'],
+    kind: 'nativo', render: vInmobiliario, export: true, fuente: 'api', owner: 'Activos Inmobiliarios', estado: 'Beta', adopcion: 47 },
+  { id: 'alternativos', nombre: 'Alternativos', icon: 'layers', zona: 'portafolio', desc: 'Fondos de private equity, REITs, infraestructura y deuda privada: flujos, rentabilidad y proyecciones', tabs: ['Resumen', 'Distribuciones y contribuciones', 'Rentabilidad y riesgo', 'Proyecciones'],
+    kind: 'nativo', render: vAlternativos, export: true, fuente: 'api', owner: 'Alternativos', estado: 'Beta', adopcion: 44 },
+  { id: 'pactos', nombre: 'Pactos (Repos)', icon: 'repo', zona: 'portafolio', desc: 'Pactos de retrocompra y retroventa: inversión de caja, financiamiento, plazos y contrapartes', tabs: [],
+    kind: 'nativo', render: vPactos, export: true, fuente: 'api', owner: 'Tesorería', estado: 'Oficial', adopcion: 79 },
+  { id: 'resultados', nombre: 'Resultados', icon: 'results', zona: 'portafolio', desc: 'Retornos, atribución y P&L del período', tabs: ['Retornos', 'Atribución', 'vs. Benchmark', 'P&L'],
+    kind: 'nativo', render: vResultados, export: true, fuente: 'api', owner: 'Producto Quant', estado: 'Oficial', adopcion: 92 },
+  { id: 'proyecciones', nombre: 'Proyecciones', icon: 'forecast', zona: 'analisis', desc: 'Flujos futuros, vencimientos y devengo proyectado', tabs: ['Flujos y vencimientos', 'Devengo proyectado', 'Escenarios'],
+    kind: 'nativo', render: vProyecciones, export: true, fuente: 'api', owner: 'Producto Quant', estado: 'Oficial', adopcion: 81 },
+  { id: 'calce', nombre: 'Calce / ALM', icon: 'models', zona: 'analisis', desc: 'Calce de activos y pasivos por tramo (NCG 461) y cobertura global', tabs: [],
+    kind: 'nativo', render: vCalce, fuente: 'api', owner: 'Actuarial', estado: 'Oficial', adopcion: 76 },
+  { id: 'tsa', nombre: 'TSA', icon: 'shield', zona: 'analisis', desc: 'Test de Suficiencia de Activos: margen, sensibilidades y metodología', tabs: [],
+    kind: 'nativo', render: vTsa, fuente: 'api', owner: 'Actuarial', estado: 'Oficial', adopcion: 68 },
+  { id: 'valorizacion', nombre: 'Valorización', icon: 'results', zona: 'analisis', desc: 'Metodología y frecuencia de valorización por clase de activo', tabs: [],
+    kind: 'nativo', render: vValorizacion, fuente: 'api', owner: 'Contabilidad de inversiones', estado: 'Oficial', adopcion: 71 },
+  { id: 'supuestos', nombre: 'Supuestos y corridas', icon: 'procedures', zona: 'analisis', desc: 'Supuestos e insumos de los modelos e historial de corridas versionadas', tabs: [],
+    kind: 'nativo', render: vSupuestos, fuente: 'api', owner: 'Actuarial · Estudios', estado: 'Oficial', adopcion: 54 },
+  { id: 'cumplimiento', nombre: 'Cumplimiento', icon: 'shield', zona: 'riesgo', desc: 'Monitoreo de límites regulatorios CMF y de política interna', tabs: ['Semáforo de límites', 'Detalle por norma', 'Histórico'],
+    kind: 'nativo', render: vCumplimiento, export: true, badge: () => alertas().length, fuente: 'api', owner: 'Riesgo · Producto Quant', estado: 'Oficial', adopcion: 88 },
+  { id: 'liquidez', nombre: 'Liquidez', icon: 'drop', zona: 'riesgo', desc: 'Posición de liquidez, ejercicios de estrés y fuentes y usos proyectados', tabs: ['Posición de liquidez', 'Estrés de liquidez', 'Fuentes y usos'],
+    kind: 'nativo', render: vLiquidez, export: true, fuente: 'api', owner: 'Tesorería', estado: 'Beta', adopcion: 69 },
+  { id: 'colateral', nombre: 'Colateral & CSA', icon: 'lock', zona: 'riesgo', desc: 'Estrés de MTM → llamados de margen vs. colateral, contrapartes y acuerdos CSA', tabs: ['Estrés y colaterales', 'Contrapartes y CSA'],
+    kind: 'nativo', render: vColateral, export: true, fuente: 'api', owner: 'Tesorería · Riesgo', estado: 'Beta', adopcion: 63 },
+  { id: 'rrvv', nombre: 'Rentas Vitalicias', icon: 'annuity', zona: 'estrategia', desc: 'Pricing del día, competencia SCOMP, sensibilidades e histórico de emisión', tabs: ['Pricing del día', 'Competencia SCOMP', 'Sensibilidades', 'Histórico de emisión'],
+    kind: 'nativo', render: vRrvv, export: true, fuente: 'api', owner: 'Actuarial · Comercial', estado: 'Beta', adopcion: 84 },
+  { id: 'relval', nombre: 'Relative Value', icon: 'scale', zona: 'estrategia', desc: 'Screener de spreads, pares con históricos e ideas de la mesa', tabs: ['Screener de spreads', 'Pares e históricos', 'Ideas y watchlist'],
+    kind: 'nativo', render: vRelval, export: true, fuente: 'api', owner: 'Mesa de Inversiones', estado: 'Beta', adopcion: 66 },
+  { id: 'optimizacion', nombre: 'Optimización', icon: 'target', zona: 'estrategia', desc: 'Frontera eficiente, asignación propuesta y restricciones de la última corrida', tabs: ['Frontera y propuesta', 'Actual vs. óptimo', 'Restricciones', 'Corridas'],
+    kind: 'nativo', render: vOptimizacion, export: true, fuente: 'api', owner: 'Estudios', estado: 'Beta', adopcion: 61 },
+  { id: 'politicas', nombre: 'Políticas', icon: 'policy', zona: 'gobierno', desc: 'Catálogo de políticas de inversión, límites y versiones', tabs: ['Catálogo', 'Ficha de política', 'Límites parametrizados', 'Versiones'],
+    kind: 'nativo', render: vPoliticas, fuente: 'db', owner: 'Gerencia de Inversiones', estado: 'Oficial', adopcion: 73 },
+  { id: 'procedimientos', nombre: 'Procedimientos', icon: 'procedures', zona: 'gobierno', desc: 'Repositorio de procedimientos del ciclo de inversiones', tabs: ['Por área', 'Vigencias'],
+    kind: 'nativo', render: vProcedimientos, fuente: 'db', owner: 'Gerencia de Inversiones', estado: 'Oficial', adopcion: 58 },
+  { id: 'faq', nombre: 'FAQ', icon: 'faq', zona: 'gobierno', desc: 'Preguntas frecuentes y glosario de términos', tabs: ['Categorías', 'Glosario'],
+    kind: 'nativo', render: vFaq, fuente: 'db', owner: 'Producto Quant', estado: 'Oficial', adopcion: 49 },
+  { id: 'explorar', nombre: 'Explorar y proponer', icon: 'grid', zona: 'plataforma', desc: 'Galería de módulos del portal, propuestas de la comunidad y tus vistas personalizadas', tabs: ['Galería de módulos', 'Propuestas', 'Mis vistas'],
+    kind: 'nativo', render: vExplorar, fuente: 'app', owner: 'Producto Quant', estado: 'Oficial', adopcion: 100 },
 ];
+
+/* Registro de un módulo nuevo desde su propio archivo/plug-in, sin tocar el shell.
+   La zona es obligatoria y debe existir en ZONAS: cada módulo tiene un hogar
+   definido en la taxonomía (sin bucket comodín). Si no encaja, la integración
+   se detiene acá con un error claro, en vez de aparecer en un limbo. */
+function registerModule(def) {
+  if (MODULES.some(m => m.id === def.id)) return;
+  if (!ZONAS.some(z => z.id === def.zona)) {
+    console.error(`registerModule("${def.id}"): zona "${def.zona}" no existe. Usa una de: ${ZONAS.map(z => z.id).join(', ')}. Módulo NO registrado.`);
+    return;
+  }
+  MODULES.push({ kind: 'nativo', fuente: 'api', estado: 'Beta', ...def });
+}
+
+/* ---------- Ejemplo de módulo integrado como plug-in ----------
+   Módulo propuesto por un equipo externo y conectado por el equipo responsable:
+   un backend dinámico (Python/Shiny) embebido. El shell no sabe nada de su
+   interior — sólo lo enmarca y le pasa el contexto global. Aparecer en el
+   portal costó exactamente esta llamada; ninguna otra parte cambió. */
+registerModule({
+  id: 'esg-lab', nombre: 'Laboratorio ESG', icon: 'grid', zona: 'estrategia',
+  desc: 'Scoring ESG, huella de carbono financiada y escenarios de descarbonización. App dinámica servida por un backend Python (Shiny), integrada por el equipo responsable.',
+  tabs: [], kind: 'app', render: { url: 'apps/esg-lab.html' },
+  fuente: 'app', owner: 'Riesgo · Sostenibilidad', estado: 'Beta', adopcion: 14,
+});
 
 /* ---------- Vistas personalizadas del usuario (localStorage) ---------- */
 function customViews() {
@@ -177,9 +251,10 @@ function renderSidebar() {
   const modItem = m => `
     <button class="nav-item ${state.module === m.id ? 'active' : ''}" data-action="nav" data-module="${m.id}">
       ${icon(m.icon, 17)}<span>${m.nombre}</span>
-      ${m.id === 'cumplimiento' && alertas().length ? `<span class="nav-badge">${alertas().length}</span>` : ''}
+      ${m.badge && m.badge() ? `<span class="nav-badge">${m.badge()}</span>` : ''}
     </button>`;
 
+  const NAV_LIMIT = 4;   // módulos visibles por sección antes de "Ver más"
   const zoneHtml = z => {
     const mods = MODULES.filter(m => m.zona === z.id);
     const extra = z.id === 'plataforma' ? views.length : 0;
@@ -187,14 +262,23 @@ function renderSidebar() {
     let items = '';
     if (!isCollapsed) {
       if (z.id === 'plataforma') {
+        // "Mi espacio" ya es su propio portal (Explorar y proponer): sin límite ni "Ver más".
         items += views.map(v => `
           <button class="nav-item ${state.module === 'mi:' + v.id ? 'active' : ''}" data-action="nav" data-module="mi:${v.id}">
             <span class="custom-dot"></span><span>${v.nombre}</span>
           </button>`).join('');
-      }
-      items += mods.map(modItem).join('');
-      if (z.id === 'plataforma') {
+        items += mods.map(modItem).join('');
         items += `<button class="nav-item add-view" data-action="open-builder">${icon('plus', 15)}<span>Nueva vista</span></button>`;
+      } else {
+        // Lista limitada: primeros NAV_LIMIT, más el módulo activo si quedó fuera.
+        let shown = mods.slice(0, NAV_LIMIT);
+        const active = mods.find(m => m.id === state.module);
+        if (active && !shown.includes(active)) shown = [...shown, active];
+        const hidden = mods.length - shown.length;
+        items += shown.map(modItem).join('');
+        const onPortal = state.module === 'zona:' + z.id;
+        items += `<button class="nav-item nav-more ${onPortal ? 'active' : ''}" data-action="nav" data-module="zona:${z.id}">
+          ${icon('grid', 15)}<span>${hidden > 0 ? `Ver ${hidden} más` : 'Ver sección'}</span>${icon('arrow', 12)}</button>`;
       }
     }
     return `
@@ -215,6 +299,8 @@ function renderSidebar() {
       </div>
     </div>
     <nav class="nav-section">
+      ${modItem(MODULES.find(m => m.id === 'inicio'))}
+      <div class="nav-divider"></div>
       ${ZONAS.map((z, i) => `${i ? '<div class="nav-divider"></div>' : ''}${zoneHtml(z)}`).join('')}
     </nav>
     <div class="sidebar-footer">
@@ -448,7 +534,7 @@ function vInicio() {
       <div class="grid two-even" style="gap:0 26px">
         <div>
           ${ejItem('Pricing Rentas Vitalicias', `${fmt(margenPond, 0)} pb`, 'margen ponderado · objetivo ≥ 15 pb · corrida 02-07', rrvvSem(margenPond), 'rrvv', 'Pricing del día')}
-          ${ejItem('Estrés de colaterales (derivados)', `${fmt(bufferCol, 1)}x`, 'buffer bajo combinado severo · mínimo 1,5x · corrida diaria', bufferCol >= COLATERAL.bufferMinimo ? 'ok' : 'bad', 'derivados', 'Estrés y colaterales')}
+          ${ejItem('Estrés de colaterales (derivados)', `${fmt(bufferCol, 1)}x`, 'buffer bajo combinado severo · mínimo 1,5x · corrida diaria', bufferCol >= COLATERAL.bufferMinimo ? 'ok' : 'bad', 'colateral', 'Estrés y colaterales')}
         </div>
         <div>
           ${ejItem('Estrés de liquidez', `${fmt(cobLiq, 1)}x`, 'cobertura 12M bajo combinado severo · mínimo 1,2x · corrida mensual', cobLiq >= LIQ_COBERTURA_MIN * 1.25 ? 'ok' : cobLiq >= LIQ_COBERTURA_MIN ? 'warn' : 'bad', 'liquidez', 'Estrés de liquidez')}
@@ -485,11 +571,66 @@ function kpiCard(label, value, sub, positive, mod, tab) {
 }
 
 /* ============================================================
-   MÓDULO: CARTERA
+   PROVEEDOR DE DATOS — única puerta a los datos de un módulo.
+   El módulo declara QUÉ necesita y en qué contexto; el proveedor decide
+   DE DÓNDE viene. En el prototipo devuelve data sintética; en producción
+   la misma llamada resuelve contra la API de Synapse / la base documental /
+   la app dinámica, sin tocar el módulo ni el shell. Integrar un módulo nuevo
+   = implementar su proveedor aquí, nada más.
    ============================================================ */
-function filteredPosiciones() {
+const DataSource = {
+  // Módulo Cartera: posiciones, movimientos y límites al contexto vigente.
+  cartera(ctx) {
+    const factorCtx = CARTERAS.find(c => c.id === ctx.cartera).factor;
+    return { posiciones: POSICIONES, movimientos: MOVIMIENTOS, limites: LIMITES, factor: factorCtx, corte: ctx.fecha, moneda: ctx.moneda };
+  },
+  // Módulo Cumplimiento: límites monitoreados, sus posiciones y la bitácora histórica.
+  cumplimiento(ctx) {
+    const factorCtx = CARTERAS.find(c => c.id === ctx.cartera).factor;
+    return { limites: LIMITES, posiciones: POSICIONES, historico: HIST_CUMPLIMIENTO, factor: factorCtx, corte: ctx.fecha };
+  },
+  // Renta Fija: posiciones de la cartera filtradas por clase (data-fed).
+  rentafija(ctx) { return claseProvider(CLASES_RF, ctx); },
+  // Inmobiliario: dominio propio de gestión (edificios en renta, mutuos, leasing).
+  inmobiliario(ctx) {
+    const factorCtx = CARTERAS.find(c => c.id === ctx.cartera).factor;
+    return { edificios: EDIFICIOS, mutuosCom: MUTUOS_COM, mutuosRes: MUTUOS_RES, factor: factorCtx };
+  },
+  // Alternativos: fondos con compromisos/llamados/distribuciones y flujos del programa.
+  alternativos(ctx) {
+    const factorCtx = CARTERAS.find(c => c.id === ctx.cartera).factor;
+    return { fondos: ALT_FONDOS, cashflow: ALT_CASHFLOW, proyeccion: ALT_PROYECCION, factor: factorCtx };
+  },
+  // Pactos (repos): operaciones de retrocompra/retroventa vigentes.
+  pactos(ctx) {
+    const factorCtx = CARTERAS.find(c => c.id === ctx.cartera).factor;
+    return { pactos: PACTOS, factor: factorCtx };
+  },
+};
+
+/* Clases (campo `clase` de POSICIONES) que componen cada activo con gestión individual. */
+const CLASES_RF = ['Renta Fija Local', 'Renta Fija Internacional', 'Corporativo', 'Corporativo ext.', 'Soberano', 'Soberano ext.', 'Bancario', 'Letras Hipotecarias', 'Mutuos Hipotecarios', 'Cartera MHE'];
+const CLASES_INMO = ['Inmobiliario'];
+const CLASES_ALT = ['Alternativos', 'Deuda privada', 'Fondo', 'Fondo internacional', 'Infraestructura', 'Inversión directa'];
+
+function claseProvider(claseSet, ctx) {
+  const factorCtx = CARTERAS.find(c => c.id === ctx.cartera).factor;
+  const posiciones = POSICIONES.filter(p => claseSet.includes(p.clase));
+  return { posiciones, factor: factorCtx, totalTodo: POSICIONES.reduce((s, p) => s + p.valor, 0) * factorCtx };
+}
+
+function dataSource(name, ctx = state) {
+  const provider = DataSource[name];
+  if (!provider) throw new Error(`Sin proveedor de datos para "${name}"`);
+  return provider(ctx);
+}
+
+/* ============================================================
+   MÓDULO: CARTERA  (consume DataSource — data-fed, sin leer globals)
+   ============================================================ */
+function filteredPosiciones(posiciones = POSICIONES) {
   const f = state.filtros;
-  return POSICIONES.filter(p =>
+  return posiciones.filter(p =>
     (!f.q || (p.nombre + p.emisor + p.id).toLowerCase().includes(f.q.toLowerCase())) &&
     (!f.clase || p.clase === f.clase) &&
     (!f.moneda || p.moneda === f.moneda) &&
@@ -498,18 +639,19 @@ function filteredPosiciones() {
 }
 
 function vCartera() {
+  const data = dataSource('cartera');   // ← datos vía proveedor, no globals
   const tab = activeTab('cartera');
-  if (tab === 'Posiciones') return carteraPosiciones();
-  if (tab === 'Composición') return carteraComposicion();
-  if (tab === 'Movimientos') return carteraMovimientos();
-  return carteraFicha();
+  if (tab === 'Posiciones') return carteraPosiciones(data);
+  if (tab === 'Composición') return carteraComposicion(data);
+  if (tab === 'Movimientos') return carteraMovimientos(data);
+  return carteraFicha(data);
 }
 
-function carteraPosiciones() {
-  const f = factor();
-  const rows = filteredPosiciones();
-  const totalAll = POSICIONES.reduce((s, p) => s + p.valor, 0);
-  const clases = [...new Set(POSICIONES.map(p => p.clase))];
+function carteraPosiciones(data) {
+  const f = data.factor;
+  const rows = filteredPosiciones(data.posiciones);
+  const totalAll = data.posiciones.reduce((s, p) => s + p.valor, 0);
+  const clases = [...new Set(data.posiciones.map(p => p.clase))];
   const gb = state.filtros.groupBy;
 
   const rowHtml = p => `
@@ -560,7 +702,7 @@ function carteraPosiciones() {
         <option value="emisor" ${gb === 'emisor' ? 'selected' : ''}>Agrupar por emisor</option>
         <option value="rating" ${gb === 'rating' ? 'selected' : ''}>Agrupar por rating</option>
       </select>
-      <span class="filter-chip-count">${rows.length} de ${POSICIONES.length} posiciones · ${money(totalSel * f)}</span>
+      <span class="filter-chip-count">${rows.length} de ${data.posiciones.length} posiciones · ${money(totalSel * f)}</span>
     </div>
     <div class="card" style="padding:6px 10px">
       <div class="table-wrap" style="max-height:560px; overflow-y:auto">
@@ -577,12 +719,12 @@ function carteraPosiciones() {
     ${sourceFootnote(['Custodio (DCV / BNY Mellon)', 'Market data (precios y ratings)'])}`;
 }
 
-function carteraComposicion() {
-  const f = factor();
-  const total = totalCartera();
+function carteraComposicion(data) {
+  const f = data.factor;
+  const total = data.posiciones.reduce((s, p) => s + p.valor, 0) * f;
   const agg = (keyFn, colorFn) => {
     const m = {};
-    POSICIONES.forEach(p => { const k = keyFn(p); m[k] = (m[k] || 0) + p.valor * f; });
+    data.posiciones.forEach(p => { const k = keyFn(p); m[k] = (m[k] || 0) + p.valor * f; });
     return Object.entries(m).sort((a, b) => b[1] - a[1]).map(([label, value], i) => ({ label, value, color: colorFn(label, i) }));
   };
   const palette = ['#007ABC', '#0090DA', '#379B94', '#1E4C76', '#A4CE4E', '#5B7F95', '#C7D2DD', '#83B8D8'];
@@ -601,7 +743,7 @@ function carteraComposicion() {
 
   const topEmisores = (() => {
     const m = {};
-    POSICIONES.forEach(p => m[p.emisor] = (m[p.emisor] || 0) + p.valor * f);
+    data.posiciones.forEach(p => m[p.emisor] = (m[p.emisor] || 0) + p.valor * f);
     return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 8);
   })();
 
@@ -618,13 +760,13 @@ function carteraComposicion() {
     ${sourceFootnote(['Custodio (DCV / BNY Mellon)', 'Market data'])}`;
 }
 
-function carteraMovimientos() {
-  const f = factor();
+function carteraMovimientos(data) {
+  const f = data.factor;
   return `
     <div class="card" style="padding:6px 10px">
       <div class="table-wrap"><table class="data">
         <thead><tr><th>Fecha</th><th>Tipo</th><th>Instrumento</th><th class="num">Monto (${unitLabel()})</th><th>Contraparte</th><th>Estado</th></tr></thead>
-        <tbody>${MOVIMIENTOS.map(mv => `
+        <tbody>${data.movimientos.map(mv => `
           <tr>
             <td>${mv.fecha}</td>
             <td><span class="ccy-chip">${mv.tipo}</span></td>
@@ -638,23 +780,23 @@ function carteraMovimientos() {
     ${sourceFootnote(['Custodio (movimientos liquidados)', 'Contabilidad de inversiones'])}`;
 }
 
-function carteraFicha() {
-  const f = factor();
+function carteraFicha(data) {
+  const f = data.factor;
   if (!state.fichaId) {
     return `
       <div class="card">
         <div class="card-header"><span class="card-title">Selecciona un instrumento</span>
           <span class="card-sub">desde Posiciones, la búsqueda global (⌘K) o esta lista</span></div>
-        ${[...POSICIONES].sort((a, b) => b.valor - a.valor).slice(0, 10).map(p => `
+        ${[...data.posiciones].sort((a, b) => b.valor - a.valor).slice(0, 10).map(p => `
           <div class="alert-row" data-action="ficha" data-id="${p.id}">
             <div><div class="alert-name">${p.nombre}</div><div class="alert-norm">${p.id} · ${p.emisor}</div></div>
             <div class="alert-metrics"><span class="alert-usage" style="width:auto">${money(p.valor * f)}</span></div>
           </div>`).join('')}
       </div>`;
   }
-  const p = POSICIONES.find(x => x.id === state.fichaId);
-  const totalAll = POSICIONES.reduce((s, x) => s + x.valor, 0);
-  const lims = LIMITES.filter(l => l.posiciones.includes(p.id));
+  const p = data.posiciones.find(x => x.id === state.fichaId);
+  const totalAll = data.posiciones.reduce((s, x) => s + x.valor, 0);
+  const lims = data.limites.filter(l => l.posiciones.includes(p.id));
   const serie = hashSeries(p.id);
 
   return `
@@ -702,6 +844,515 @@ function carteraFicha() {
       </div>
     </div>
     ${sourceFootnote([p.fuente, 'Market data (precios)'])}`;
+}
+
+/* ============================================================
+   MÓDULOS POR CLASE DE ACTIVO (Renta Fija, Inmobiliario, Alternativos)
+   Cada uno consume su proveedor por clase y comparte esta vista.
+   ============================================================ */
+const PALETA_CLASE = ['#007ABC', '#0090DA', '#379B94', '#1E4C76', '#A4CE4E', '#5B7F95', '#C7D2DD', '#83B8D8'];
+
+function vClaseActivo(data, cfg) {
+  const f = data.factor;
+  const pos = data.posiciones;
+  const total = pos.reduce((s, p) => s + p.valor, 0) * f;
+  const pctCartera = data.totalTodo ? total / data.totalTodo * 100 : 0;
+  const emisores = new Set(pos.map(p => p.emisor)).size;
+
+  const conDur = pos.filter(p => p.duracion != null);
+  const durProm = conDur.length ? conDur.reduce((s, p) => s + p.duracion * p.valor, 0) / conDur.reduce((s, p) => s + p.valor, 0) : null;
+  const conTir = pos.filter(p => p.tir != null);
+  const tirProm = conTir.length ? conTir.reduce((s, p) => s + p.tir * p.valor, 0) / conTir.reduce((s, p) => s + p.valor, 0) : null;
+
+  const kpi4 = durProm != null
+    ? kpiCard('Duración promedio', `${fmt(durProm, 1)} años`, tirProm != null ? `TIR ponderada ${pct(tirProm, 2)}` : 'ponderada por valor', true, cfg.mod, '')
+    : kpiCard('Emisores / vehículos', `${emisores}`, 'entidades distintas en la clase', true, cfg.mod, '');
+
+  const bySub = {};
+  pos.forEach(p => { const k = p.subclase || p.clase; bySub[k] = (bySub[k] || 0) + p.valor * f; });
+  const segs = Object.entries(bySub).sort((a, b) => b[1] - a[1]).map(([label, value], i) => ({ label, value, color: PALETA_CLASE[i % PALETA_CLASE.length] }));
+
+  const rows = [...pos].sort((a, b) => b.valor - a.valor);
+
+  return `
+    <div class="grid kpis">
+      ${kpiCard(`Valor ${cfg.corta}`, money(total), `${pct(pctCartera)} de la cartera`, true, 'cartera', 'Composición')}
+      ${kpiCard('N° de posiciones', `${pos.length}`, `de ${POSICIONES.length} en la cartera`, true, 'cartera', 'Posiciones')}
+      ${kpiCard('Participación', pct(pctCartera), 'sobre el total de la cartera', true, 'cartera', 'Composición')}
+      ${kpi4}
+    </div>
+    <div class="grid two mt-14">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Composición por subclase</span><span class="card-sub">valor de mercado</span></div>
+        <div class="donut-flex">
+          ${Charts.donut(segs, { size: 150, stroke: 23, centerLabel: unitLabel(), centerValue: moneyN(total) })}
+          <div class="chart-legend" style="flex-direction:column; gap:7px">
+            ${segs.map(s => `<div class="legend-item"><span class="legend-swatch" style="background:${s.color}"></span>${s.label} <b>${pct(s.value / total * 100)}</b></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Nota de gestión</span><span class="card-sub">${cfg.owner}</span></div>
+        <div style="font-size:12.5px;color:var(--text-2);line-height:1.6">${cfg.nota}</div>
+      </div>
+    </div>
+    <div class="card mt-14" style="padding:6px 10px">
+      <div class="card-header" style="padding:10px 8px 0"><span class="card-title">Posiciones de la clase</span>
+        <span class="spacer"></span>
+        <button class="btn ghost" data-action="goto" data-module="cartera" data-tab="Posiciones">Ver en el consolidado ${icon('arrow', 12)}</button></div>
+      <div class="table-wrap" style="max-height:460px; overflow-y:auto"><table class="data">
+        <thead><tr><th>Instrumento</th><th>Subclase</th><th>Mon.</th><th class="num">Valor (${unitLabel()})</th><th class="num">% clase</th><th>Rating</th><th class="num">Duración</th><th class="num">TIR</th></tr></thead>
+        <tbody>${rows.length ? rows.map(p => `
+          <tr class="clickable" data-action="ficha" data-id="${p.id}">
+            <td><div class="cell-main">${p.nombre}</div><div class="cell-sub">${p.id} · ${p.emisor}</div></td>
+            <td>${p.subclase}</td><td><span class="ccy-chip">${p.moneda}</span></td>
+            <td class="num" style="font-weight:600">${moneyN(p.valor * f)}</td>
+            <td class="num">${pct(p.valor / (total / f) * 100)}</td>
+            <td>${p.rating === '—' ? '<span class="cell-sub">—</span>' : `<span class="rating-chip ${ratingBucket(p.rating) === 'BBB e inferior' ? 'mid' : ''}">${p.rating}</span>`}</td>
+            <td class="num">${p.duracion != null ? fmt(p.duracion, 1) : '—'}</td>
+            <td class="num">${p.tir != null ? pct(p.tir, 2) : '—'}</td>
+          </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text-3);padding:30px">Sin posiciones en esta clase a la fecha de corte</td></tr>'}</tbody>
+      </table></div>
+    </div>
+    ${sourceFootnote(cfg.fuentes)}`;
+}
+
+function vRentaFija() {
+  return vClaseActivo(dataSource('rentafija'), {
+    mod: 'rentafija', corta: 'renta fija', owner: 'Mesa de Renta Fija',
+    nota: 'Libro de renta fija local e internacional, corporativos, soberanos, bancarios y mutuos hipotecarios. La duración y la TIR se ponderan por valor de mercado; el detalle de calce por tramo vive en <b>Calce / ALM</b> y los límites de concentración en <b>Cumplimiento</b>.',
+    fuentes: ['Custodio (DCV / BNY Mellon)', 'Market data (precios y ratings)'],
+  });
+}
+
+/* ---------- INMOBILIARIO (edificios en renta, mutuos, leasing) ---------- */
+function moraSem(m) { return m < 2 ? 'ok' : m <= 5 ? 'warn' : 'bad'; }
+function moraColor(m) { return m < 2 ? '#379B94' : m <= 5 ? '#B47300' : '#B3261E'; }
+
+function vInmobiliario() {
+  const data = dataSource('inmobiliario');
+  const tab = activeTab('inmobiliario');
+  if (tab === 'Mutuos comerciales y leasing') return inmoMutuosCom(data);
+  if (tab === 'Mutuos residenciales') return inmoMutuosRes(data);
+  return inmoEdificios(data);
+}
+
+function inmoMapa(edificios, sel) {
+  const comunas = [
+    { n: 'Quilicura', x: 40, y: 18 }, { n: 'Las Condes', x: 78, y: 42 },
+    { n: 'Providencia', x: 58, y: 40 }, { n: 'Santiago', x: 46, y: 52 },
+    { n: 'Ñuñoa', x: 58, y: 60 }, { n: 'Maipú', x: 22, y: 62 },
+  ];
+  const markers = edificios.map(e => {
+    const r = 2.6 + e.valor / 68000 * 3.4;
+    const on = e.id === sel.id;
+    return `<g data-action="edificio" data-id="${e.id}" style="cursor:pointer">
+      ${on ? `<circle cx="${e.x}" cy="${e.y}" r="${r + 3}" fill="none" stroke="${moraColor(e.morosidad)}" stroke-width="0.8" opacity="0.5"/>` : ''}
+      <circle cx="${e.x}" cy="${e.y}" r="${r}" fill="${moraColor(e.morosidad)}" fill-opacity="${on ? 0.95 : 0.62}" stroke="#fff" stroke-width="0.7"/>
+    </g>`;
+  }).join('');
+  return `
+    <svg viewBox="0 0 100 74" class="inmo-map" preserveAspectRatio="xMidYMid meet">
+      <rect x="0" y="0" width="100" height="74" fill="var(--map-bg)" rx="2"/>
+      <path d="M8 30 Q40 24 62 34 T96 40" fill="none" stroke="var(--map-line)" stroke-width="0.7"/>
+      <path d="M30 6 L34 70 M60 4 L58 72 M12 44 L92 40" stroke="var(--map-line)" stroke-width="0.4" opacity="0.6"/>
+      ${comunas.map(c => `<text x="${c.x}" y="${c.y}" class="inmo-map-comuna" text-anchor="middle">${c.n}</text>`).join('')}
+      ${markers}
+    </svg>`;
+}
+
+function inmoEdificios(data) {
+  const f = data.factor;
+  const eds = data.edificios;
+  const valorTot = eds.reduce((s, e) => s + e.valor, 0) * f;
+  const arriendoTot = eds.reduce((s, e) => s + e.arriendoMensual, 0) * f;
+  const m2Tot = eds.reduce((s, e) => s + e.m2, 0);
+  const ocupProm = eds.reduce((s, e) => s + e.ocupacion * e.m2, 0) / m2Tot;
+  const valorBase = eds.reduce((s, e) => s + e.valor, 0);
+  const moraProm = eds.reduce((s, e) => s + e.morosidad * e.valor, 0) / valorBase;
+  const sel = eds.find(e => e.id === state.edificioId) || eds[0];
+
+  const arrRows = sel.arrendatarios.map(a => {
+    const e = a.moraDias === 0 ? 'ok' : a.moraDias <= 30 ? 'warn' : 'bad';
+    return `<tr>
+      <td class="cell-main">${a.nombre}</td>
+      <td class="num">${fmt(a.m2, 0)}</td>
+      <td class="num">${money(a.renta * f)}</td>
+      <td><span class="status-pill ${e}">${a.moraDias === 0 ? 'Al día' : `Mora ${a.moraDias}d`}</span></td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div class="grid kpis">
+      ${kpiCard('Valor del portafolio', money(valorTot), `${eds.length} edificios · ${fmt(m2Tot / 1000, 0)} mil m²`, true, 'inmobiliario', 'Edificios en renta')}
+      ${kpiCard('Arriendo mensual', money(arriendoTot), 'ingreso contractual bruto', true, 'inmobiliario', 'Edificios en renta')}
+      ${kpiCard('Ocupación promedio', pct(ocupProm), 'ponderada por m²', ocupProm >= 90, 'inmobiliario', 'Edificios en renta')}
+      ${kpiCard('Morosidad promedio', pct(moraProm), 'ponderada por valor', moraProm < 3, 'inmobiliario', 'Edificios en renta')}
+    </div>
+    <div class="grid two mt-14">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Ubicación de los edificios</span><span class="card-sub">tamaño = valor · color = morosidad · clic para ver detalle</span></div>
+        ${inmoMapa(eds, sel)}
+        <div class="chart-legend" style="margin-top:6px">
+          <div class="legend-item"><span class="legend-swatch" style="background:#379B94"></span>Mora &lt; 2%</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#B47300"></span>2–5%</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#B3261E"></span>&gt; 5%</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ficha-header">
+          <div>
+            <div class="ficha-title">${sel.nombre}</div>
+            <div class="ficha-chips">
+              <span class="meta-chip">${sel.comuna}</span>
+              <span class="meta-chip">${sel.tipo}</span>
+              <span class="status-pill ${moraSem(sel.morosidad)}"><span class="sem-dot ${moraSem(sel.morosidad)}"></span>Morosidad ${pct(sel.morosidad)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="metric-grid">
+          <div class="metric-cell"><div class="m-label">Valor</div><div class="m-value" style="font-size:13px">${money(sel.valor * f)}</div></div>
+          <div class="metric-cell"><div class="m-label">Superficie</div><div class="m-value" style="font-size:13px">${fmt(sel.m2, 0)} m²</div></div>
+          <div class="metric-cell"><div class="m-label">Arriendo/mes</div><div class="m-value" style="font-size:13px">${money(sel.arriendoMensual * f)}</div></div>
+          <div class="metric-cell"><div class="m-label">Ocupación</div><div class="m-value" style="font-size:13px">${pct(sel.ocupacion)}</div></div>
+          <div class="metric-cell"><div class="m-label">Cap rate</div><div class="m-value" style="font-size:13px">${pct(sel.capRate)}</div></div>
+          <div class="metric-cell"><div class="m-label">Arrendatarios</div><div class="m-value" style="font-size:13px">${sel.arrendatarios.length}</div></div>
+        </div>
+        <div class="card-header" style="margin-top:10px"><span class="card-title">Arrendatarios principales</span></div>
+        <div class="table-wrap"><table class="data">
+          <thead><tr><th>Arrendatario</th><th class="num">m²</th><th class="num">Renta/mes</th><th>Estado</th></tr></thead>
+          <tbody>${arrRows}</tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="card mt-14" style="padding:6px 10px">
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Edificio</th><th>Comuna</th><th>Tipo</th><th class="num">m²</th><th class="num">Valor (${unitLabel()})</th><th class="num">Arriendo/mes</th><th class="num">Ocupación</th><th class="num">Morosidad</th><th class="num">Cap rate</th></tr></thead>
+        <tbody>${[...eds].sort((a, b) => b.valor - a.valor).map(e => `
+          <tr class="clickable ${e.id === sel.id ? 'row-active' : ''}" data-action="edificio" data-id="${e.id}">
+            <td class="cell-main">${e.nombre}</td><td>${e.comuna}</td><td>${e.tipo}</td>
+            <td class="num">${fmt(e.m2, 0)}</td><td class="num" style="font-weight:600">${moneyN(e.valor * f)}</td>
+            <td class="num">${moneyN(e.arriendoMensual * f)}</td><td class="num">${pct(e.ocupacion)}</td>
+            <td class="num" style="color:${moraColor(e.morosidad)};font-weight:700">${pct(e.morosidad)}</td>
+            <td class="num">${pct(e.capRate)}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    ${sourceFootnote(['Administración de activos inmobiliarios', 'Tasación independiente', 'Contabilidad de inversiones'])}`;
+}
+
+function inmoMutuosCom(data) {
+  const f = data.factor;
+  const rows = data.mutuosCom;
+  const saldoTot = rows.reduce((s, m) => s + m.saldo, 0);
+  const tasaProm = rows.reduce((s, m) => s + m.tasa * m.saldo, 0) / saldoTot;
+  const moraProm = rows.reduce((s, m) => s + m.morosidad * m.saldo, 0) / saldoTot;
+  const ops = rows.reduce((s, m) => s + m.operaciones, 0);
+  return `
+    <div class="grid kpis">
+      ${kpiCard('Saldo insoluto', money(saldoTot * f), `${ops} operaciones`, true, 'inmobiliario', 'Mutuos comerciales y leasing')}
+      ${kpiCard('Tasa promedio', pct(tasaProm, 2), 'ponderada por saldo', true, 'inmobiliario', 'Mutuos comerciales y leasing')}
+      ${kpiCard('Morosidad', pct(moraProm), 'ponderada por saldo', moraProm < 3, 'inmobiliario', 'Mutuos comerciales y leasing')}
+      ${kpiCard('LTV promedio', pct(rows.reduce((s, m) => s + m.ltv * m.saldo, 0) / saldoTot, 0), 'loan-to-value', true, 'inmobiliario', 'Mutuos comerciales y leasing')}
+    </div>
+    <div class="grid two mt-14">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Saldo por segmento</span><span class="card-sub">mutuos comerciales + leasing inmobiliario</span></div>
+        ${Charts.hBars(rows.map(m => ({ label: m.segmento, value: +(m.saldo * f).toFixed(0), color: '#1E4C76' })), { fmtVal: v => moneyN(v) })}
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Morosidad por segmento</span><span class="card-sub">% del saldo con mora &gt; 90 días</span></div>
+        ${Charts.hBars(rows.map(m => ({ label: m.segmento, value: m.morosidad, color: moraColor(m.morosidad) })), { fmtVal: v => pct(v) })}
+      </div>
+    </div>
+    <div class="card mt-14" style="padding:6px 10px">
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Segmento</th><th class="num">Saldo (${unitLabel()})</th><th class="num">Tasa</th><th class="num">Plazo prom.</th><th class="num">LTV</th><th class="num">Morosidad</th><th class="num">Operaciones</th></tr></thead>
+        <tbody>${rows.map(m => `
+          <tr><td class="cell-main">${m.segmento}</td>
+          <td class="num" style="font-weight:600">${moneyN(m.saldo * f)}</td><td class="num">${pct(m.tasa, 2)}</td>
+          <td class="num">${m.plazo} años</td><td class="num">${pct(m.ltv, 0)}</td>
+          <td class="num" style="color:${moraColor(m.morosidad)};font-weight:700">${pct(m.morosidad)}</td>
+          <td class="num">${m.operaciones}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    ${sourceFootnote(['Administración de créditos', 'Contabilidad de inversiones'])}`;
+}
+
+function inmoMutuosRes(data) {
+  const f = data.factor;
+  const rows = data.mutuosRes;
+  const saldoTot = rows.reduce((s, m) => s + m.saldo, 0);
+  const tasaProm = rows.reduce((s, m) => s + m.tasa * m.saldo, 0) / saldoTot;
+  const moraProm = rows.reduce((s, m) => s + m.morosidad * m.saldo, 0) / saldoTot;
+  const prepagoProm = rows.reduce((s, m) => s + m.prepago * m.saldo, 0) / saldoTot;
+  const ops = rows.reduce((s, m) => s + m.operaciones, 0);
+  return `
+    <div class="grid kpis">
+      ${kpiCard('Saldo insoluto', money(saldoTot * f), `${fmt(ops, 0)} créditos`, true, 'inmobiliario', 'Mutuos residenciales')}
+      ${kpiCard('Tasa promedio', pct(tasaProm, 2), 'ponderada por saldo', true, 'inmobiliario', 'Mutuos residenciales')}
+      ${kpiCard('Morosidad', pct(moraProm), 'ponderada por saldo', moraProm < 3, 'inmobiliario', 'Mutuos residenciales')}
+      ${kpiCard('Prepago anualizado', pct(prepagoProm), 'CPR ponderado', true, 'inmobiliario', 'Mutuos residenciales')}
+    </div>
+    <div class="grid two mt-14">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Saldo por tramo de LTV</span></div>
+        ${Charts.hBars(rows.map(m => ({ label: m.tramo, value: +(m.saldo * f).toFixed(0), color: '#007ABC' })), { fmtVal: v => moneyN(v) })}
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Morosidad vs. prepago por tramo</span></div>
+        ${Charts.groupedBars(rows.map(m => m.tramo), [
+          { name: 'Morosidad', color: '#B3261E', values: rows.map(m => m.morosidad) },
+          { name: 'Prepago (CPR)', color: '#379B94', values: rows.map(m => m.prepago) },
+        ], { fmtVal: v => pct(v), height: 190 })}
+      </div>
+    </div>
+    <div class="card mt-14" style="padding:6px 10px">
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Tramo LTV</th><th class="num">Saldo (${unitLabel()})</th><th class="num">Tasa</th><th class="num">Morosidad</th><th class="num">Prepago</th><th class="num">Créditos</th></tr></thead>
+        <tbody>${rows.map(m => `
+          <tr><td class="cell-main">${m.tramo}</td>
+          <td class="num" style="font-weight:600">${moneyN(m.saldo * f)}</td><td class="num">${pct(m.tasa, 2)}</td>
+          <td class="num" style="color:${moraColor(m.morosidad)};font-weight:700">${pct(m.morosidad)}</td>
+          <td class="num">${pct(m.prepago)}</td><td class="num">${fmt(m.operaciones, 0)}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    ${sourceFootnote(['Administración de créditos hipotecarios', 'Contabilidad de inversiones'])}`;
+}
+
+/* ---------- ALTERNATIVOS (fondos: PE, REIT, infra, deuda privada) ---------- */
+const ALT_TIPO_COLOR = { 'Private Equity': '#007ABC', 'Infraestructura': '#379B94', 'REIT': '#1E4C76', 'Deuda privada': '#A4CE4E', 'Fondo local': '#5B7F95' };
+
+function vAlternativos() {
+  const data = dataSource('alternativos');
+  const tab = activeTab('alternativos');
+  if (tab === 'Distribuciones y contribuciones') return altFlujos(data);
+  if (tab === 'Rentabilidad y riesgo') return altRiesgo(data);
+  if (tab === 'Proyecciones') return altProyecciones(data);
+  return altResumen(data);
+}
+
+function altResumen(data) {
+  const f = data.factor;
+  const fondos = data.fondos;
+  const comp = fondos.reduce((s, x) => s + x.compromiso, 0);
+  const llam = fondos.reduce((s, x) => s + x.llamado, 0);
+  const dist = fondos.reduce((s, x) => s + x.distribuido, 0);
+  const nav = fondos.reduce((s, x) => s + x.nav, 0);
+  const tvpi = (dist + nav) / llam;
+
+  const byTipo = {};
+  fondos.forEach(x => byTipo[x.tipo] = (byTipo[x.tipo] || 0) + x.nav * f);
+  const segs = Object.entries(byTipo).sort((a, b) => b[1] - a[1]).map(([label, value]) => ({ label, value, color: ALT_TIPO_COLOR[label] || '#8494A3' }));
+
+  return `
+    <div class="grid kpis">
+      ${kpiCard('Compromiso total', money(comp * f), `${fondos.length} fondos`, true, 'alternativos', 'Resumen')}
+      ${kpiCard('Capital llamado', money(llam * f), `${pct(llam / comp * 100, 0)} del compromiso`, true, 'alternativos', 'Resumen')}
+      ${kpiCard('Distribuido', money(dist * f), `DPI ${fmt(dist / llam, 2)}x`, true, 'alternativos', 'Distribuciones y contribuciones')}
+      ${kpiCard('NAV', money(nav * f), `TVPI ${fmt(tvpi, 2)}x`, true, 'alternativos', 'Rentabilidad y riesgo')}
+    </div>
+    <div class="grid two mt-14">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Exposición por tipo</span><span class="card-sub">NAV vigente</span></div>
+        <div class="donut-flex">
+          ${Charts.donut(segs, { size: 150, stroke: 23, centerLabel: unitLabel(), centerValue: moneyN(nav * f) })}
+          <div class="chart-legend" style="flex-direction:column; gap:7px">
+            ${segs.map(s => `<div class="legend-item"><span class="legend-swatch" style="background:${s.color}"></span>${s.label} <b>${pct(s.value / (nav * f) * 100)}</b></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Nota de gestión</span><span class="card-sub">Alternativos</span></div>
+        <div style="font-size:12.5px;color:var(--text-2);line-height:1.6">Programa de fondos de private equity, infraestructura, REITs, deuda privada y fondos locales. Se gestiona por compromisos y llamados de capital; las <b>distribuciones y contribuciones</b> agregadas y por fondo están en su pestaña, junto con <b>rentabilidad y riesgo</b> (TIR, TVPI, DPI) y las <b>proyecciones</b> de flujos y despliegue del <i>dry powder</i>.</div>
+      </div>
+    </div>
+    <div class="card mt-14" style="padding:6px 10px">
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Fondo</th><th>Tipo</th><th class="num">Añada</th><th class="num">Compromiso (${unitLabel()})</th><th class="num">Llamado</th><th class="num">Distribuido</th><th class="num">NAV</th><th class="num">DPI</th><th class="num">TVPI</th><th class="num">TIR neta</th></tr></thead>
+        <tbody>${[...fondos].sort((a, b) => b.nav - a.nav).map(x => `
+          <tr><td class="cell-main">${x.nombre}</td>
+          <td><span class="ccy-chip">${x.tipo}</span></td><td class="num">${x.anada}</td>
+          <td class="num">${moneyN(x.compromiso * f)}</td><td class="num">${moneyN(x.llamado * f)}</td>
+          <td class="num">${moneyN(x.distribuido * f)}</td><td class="num" style="font-weight:600">${moneyN(x.nav * f)}</td>
+          <td class="num">${fmt(x.distribuido / x.llamado, 2)}x</td><td class="num" style="font-weight:700">${fmt((x.distribuido + x.nav) / x.llamado, 2)}x</td>
+          <td class="num" style="color:var(--ok);font-weight:700">${pct(x.tir, 1)}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    ${sourceFootnote(['NAV administradores (rezago 1 trimestre)', 'Contabilidad de inversiones'])}`;
+}
+
+function altFlujos(data) {
+  const f = data.factor;
+  const cf = data.cashflow;
+  const contribAcum = cf.contribuciones.reduce((a, b) => a + b, 0) * f;
+  const distAcum = cf.distribuciones.reduce((a, b) => a + b, 0) * f;
+  const neto = distAcum - contribAcum;
+  const dpiAgg = distAcum / contribAcum;
+
+  return `
+    <div class="grid kpis">
+      ${kpiCard('Contribuciones acumuladas', money(contribAcum), 'llamados de capital', false, 'alternativos', 'Distribuciones y contribuciones')}
+      ${kpiCard('Distribuciones acumuladas', money(distAcum), 'capital devuelto', true, 'alternativos', 'Distribuciones y contribuciones')}
+      ${kpiCard('Flujo neto', money(neto), neto >= 0 ? 'programa en devolución neta' : 'aún en despliegue neto', neto >= 0, 'alternativos', 'Distribuciones y contribuciones')}
+      ${kpiCard('DPI agregado', `${fmt(dpiAgg, 2)}x`, 'distribuido / llamado', true, 'alternativos', 'Rentabilidad y riesgo')}
+    </div>
+    <div class="card mt-14">
+      <div class="card-header"><span class="card-title">Contribuciones vs. distribuciones por año</span><span class="card-sub">llamados de capital y distribuciones recibidas · MM CLP</span></div>
+      ${Charts.groupedBars(cf.labels, [
+        { name: 'Contribuciones', color: '#B3261E', values: cf.contribuciones.map(v => v * f) },
+        { name: 'Distribuciones', color: '#379B94', values: cf.distribuciones.map(v => v * f) },
+      ], { fmtVal: v => fmt(v / 1000, 0) + ' mM', height: 230 })}
+    </div>
+    <div class="card mt-14">
+      <div class="card-header"><span class="card-title">NAV del programa</span><span class="card-sub">valor neto vigente a fin de cada año</span></div>
+      ${Charts.lineChart(cf.labels, [{ name: 'NAV', color: '#007ABC', points: cf.nav.map(v => v * f), area: true }], { unit: '' })}
+    </div>
+    <div class="card mt-14" style="padding:6px 10px">
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Fondo</th><th class="num">Contribuido (${unitLabel()})</th><th class="num">Distribuido</th><th class="num">Neto</th><th class="num">DPI</th></tr></thead>
+        <tbody>${[...data.fondos].sort((a, b) => b.distribuido - a.distribuido).map(x => `
+          <tr><td class="cell-main">${x.nombre}</td>
+          <td class="num">${moneyN(x.llamado * f)}</td><td class="num">${moneyN(x.distribuido * f)}</td>
+          <td class="num" style="color:${x.distribuido - x.llamado >= 0 ? 'var(--ok)' : 'var(--bad)'};font-weight:600">${moneyN((x.distribuido - x.llamado) * f)}</td>
+          <td class="num" style="font-weight:700">${fmt(x.distribuido / x.llamado, 2)}x</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    ${sourceFootnote(['Estados de cuenta de administradores', 'Contabilidad de inversiones'])}`;
+}
+
+function altRiesgo(data) {
+  const f = data.factor;
+  const fondos = data.fondos;
+  const llam = fondos.reduce((s, x) => s + x.llamado, 0);
+  const tirPond = fondos.reduce((s, x) => s + x.tir * x.nav, 0) / fondos.reduce((s, x) => s + x.nav, 0);
+  const dist = fondos.reduce((s, x) => s + x.distribuido, 0);
+  const nav = fondos.reduce((s, x) => s + x.nav, 0);
+  const tvpi = (dist + nav) / llam, dpi = dist / llam, rvpi = nav / llam;
+
+  return `
+    <div class="grid kpis">
+      ${kpiCard('TIR neta ponderada', pct(tirPond, 1), 'ponderada por NAV', true, 'alternativos', 'Rentabilidad y riesgo')}
+      ${kpiCard('TVPI', `${fmt(tvpi, 2)}x`, '(distribuido + NAV) / llamado', true, 'alternativos', 'Rentabilidad y riesgo')}
+      ${kpiCard('DPI', `${fmt(dpi, 2)}x`, 'distribuido / llamado', true, 'alternativos', 'Distribuciones y contribuciones')}
+      ${kpiCard('RVPI', `${fmt(rvpi, 2)}x`, 'NAV / llamado (no realizado)', true, 'alternativos', 'Rentabilidad y riesgo')}
+    </div>
+    <div class="card mt-14">
+      <div class="card-header"><span class="card-title">TIR neta por fondo</span><span class="card-sub">desde el inicio (since inception)</span></div>
+      ${Charts.hBars([...fondos].sort((a, b) => b.tir - a.tir).map(x => ({ label: x.nombre, value: x.tir, color: ALT_TIPO_COLOR[x.tipo] || '#007ABC' })), { fmtVal: v => pct(v, 1) })}
+    </div>
+    <div class="card mt-14" style="padding:6px 10px">
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Fondo</th><th>Tipo</th><th class="num">TIR neta</th><th class="num">TVPI</th><th class="num">DPI</th><th class="num">RVPI</th><th class="num">Volatilidad</th></tr></thead>
+        <tbody>${[...fondos].sort((a, b) => b.tir - a.tir).map(x => `
+          <tr><td class="cell-main">${x.nombre}</td><td><span class="ccy-chip">${x.tipo}</span></td>
+          <td class="num" style="color:var(--ok);font-weight:700">${pct(x.tir, 1)}</td>
+          <td class="num">${fmt((x.distribuido + x.nav) / x.llamado, 2)}x</td>
+          <td class="num">${fmt(x.distribuido / x.llamado, 2)}x</td>
+          <td class="num">${fmt(x.nav / x.llamado, 2)}x</td>
+          <td class="num">${pct(x.vol, 1)}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+    ${sourceFootnote(['Estados de administradores', 'Cálculo Quant (TIR desde inicio)'])}`;
+}
+
+function altProyecciones(data) {
+  const f = data.factor;
+  const p = data.proyeccion;
+  const dryPowder = data.fondos.reduce((s, x) => s + (x.compromiso - x.llamado), 0) * f;
+  return `
+    <div class="grid kpis">
+      ${kpiCard('Dry powder', money(dryPowder), 'compromiso no llamado', true, 'alternativos', 'Proyecciones')}
+      ${kpiCard('Llamados proyectados 12M', money(p.llamados[0] * f), `año ${p.labels[0]}`, false, 'alternativos', 'Proyecciones')}
+      ${kpiCard('Distribuciones proyectadas 12M', money(p.distribuciones[0] * f), `año ${p.labels[0]}`, true, 'alternativos', 'Proyecciones')}
+      ${kpiCard('Flujo neto proyectado', money((p.distribuciones.reduce((a, b) => a + b, 0) - p.llamados.reduce((a, b) => a + b, 0)) * f), `${p.labels[0]}–${p.labels[p.labels.length - 1]}`, true, 'alternativos', 'Proyecciones')}
+    </div>
+    <div class="card mt-14">
+      <div class="card-header"><span class="card-title">Llamados y distribuciones proyectados</span><span class="card-sub">despliegue de dry powder y devoluciones esperadas · MM CLP</span></div>
+      ${Charts.groupedBars(p.labels, [
+        { name: 'Llamados', color: '#B3261E', values: p.llamados.map(v => v * f) },
+        { name: 'Distribuciones', color: '#379B94', values: p.distribuciones.map(v => v * f) },
+      ], { fmtVal: v => fmt(v / 1000, 0) + ' mM', height: 230 })}
+    </div>
+    <div class="card mt-14">
+      <div class="card-header"><span class="card-title">Nota metodológica</span></div>
+      <div style="font-size:12.5px;color:var(--text-2);line-height:1.6">Proyección basada en el ritmo histórico de llamados de cada añada y en los calendarios indicativos de los administradores. El aporte neto a la posición de liquidez de la compañía se consolida en el módulo <b>Liquidez</b>.</div>
+    </div>
+    ${sourceFootnote(['Calendarios de administradores', 'Modelo de flujos Quant'])}`;
+}
+
+/* ============================================================
+   MÓDULO: PACTOS (REPOS)
+   ============================================================ */
+function vPactos() {
+  const data = dataSource('pactos');
+  const f = data.factor;
+  const ps = data.pactos;
+  const inv = ps.filter(p => p.tipo === 'Compra con retroventa');
+  const fund = ps.filter(p => p.tipo === 'Venta con retrocompra');
+  const sum = arr => arr.reduce((s, p) => s + p.monto, 0);
+  const invTot = sum(inv), fundTot = sum(fund), montoTot = sum(ps);
+  const tasaProm = ps.reduce((s, p) => s + p.tasa * p.monto, 0) / montoTot;
+  const plazoProm = ps.reduce((s, p) => s + p.dias * p.monto, 0) / montoTot;
+
+  // Escalera de vencimientos por bucket de plazo
+  const buckets = [
+    { label: '1 día', test: d => d <= 1 },
+    { label: '2–7 días', test: d => d > 1 && d <= 7 },
+    { label: '8–21 días', test: d => d > 7 && d <= 21 },
+    { label: '> 21 días', test: d => d > 21 },
+  ].map(b => ({ label: b.label, value: +(ps.filter(p => b.test(p.dias)).reduce((s, p) => s + p.monto, 0) * f).toFixed(0), color: '#007ABC' }));
+
+  // Composición por contraparte
+  const byCp = {};
+  ps.forEach(p => byCp[p.contraparte] = (byCp[p.contraparte] || 0) + p.monto * f);
+  const paleta = ['#007ABC', '#0090DA', '#379B94', '#1E4C76', '#A4CE4E', '#5B7F95'];
+  const segsCp = Object.entries(byCp).sort((a, b) => b[1] - a[1]).map(([label, value], i) => ({ label, value, color: paleta[i % paleta.length] }));
+
+  return `
+    <div class="grid kpis">
+      ${kpiCard('Inversión en pactos', money(invTot * f), `compra con retroventa · ${inv.length} operaciones`, true, 'pactos', '')}
+      ${kpiCard('Financiamiento con pactos', money(fundTot * f), `venta con retrocompra · ${fund.length} operaciones`, fundTot === 0, 'pactos', '')}
+      ${kpiCard('Tasa promedio', pct(tasaProm, 2), 'ponderada por monto', true, 'pactos', '')}
+      ${kpiCard('Plazo promedio', `${fmt(plazoProm, 0)} días`, 'ponderado por monto', true, 'liquidez', 'Posición de liquidez')}
+    </div>
+    <div class="grid two mt-14">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Vencimientos por plazo</span><span class="card-sub">monto que vence en cada tramo</span></div>
+        ${Charts.hBars(buckets, { fmtVal: v => moneyN(v) })}
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Exposición por contraparte</span><span class="card-sub">monto vigente</span></div>
+        <div class="donut-flex">
+          ${Charts.donut(segsCp, { size: 150, stroke: 23, centerLabel: unitLabel(), centerValue: moneyN(montoTot * f) })}
+          <div class="chart-legend" style="flex-direction:column; gap:6px">
+            ${segsCp.map(s => `<div class="legend-item"><span class="legend-swatch" style="background:${s.color}"></span>${s.label} <b>${pct(s.value / (montoTot * f) * 100)}</b></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card mt-14" style="padding:6px 10px">
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Operación</th><th>Tipo</th><th>Contraparte</th><th>Colateral (subyacente)</th><th class="num">Monto (${unitLabel()})</th><th class="num">Tasa</th><th class="num">Plazo</th><th>Vencimiento</th><th class="num">Cobertura</th></tr></thead>
+        <tbody>${[...ps].sort((a, b) => a.dias - b.dias).map(p => {
+          const cob = p.colateral / p.monto * 100;
+          return `<tr>
+            <td><div class="cell-main">${p.id}</div><div class="cell-sub"><span class="ccy-chip">${p.moneda}</span></div></td>
+            <td>${p.tipo === 'Compra con retroventa' ? '<span class="status-pill ok">Inversión</span>' : '<span class="status-pill warn">Financiamiento</span>'}</td>
+            <td>${p.contraparte}</td>
+            <td class="cell-sub" style="white-space:normal">${p.subyacente}</td>
+            <td class="num" style="font-weight:600">${moneyN(p.monto * f)}</td>
+            <td class="num">${pct(p.tasa, 2)}</td>
+            <td class="num">${p.dias} d</td>
+            <td>${p.vencimiento}</td>
+            <td class="num" style="color:${cob >= 102 ? 'var(--ok)' : 'var(--text-2)'};font-weight:600">${pct(cob, 1)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div>
+    </div>
+    <div class="footnote"><span class="meta-chip">Cobertura = valor del colateral / monto del pacto (margen sobre el efectivo)</span>
+      <span class="meta-chip src">El efecto de los pactos en la liquidez a corto plazo se consolida en Liquidez</span></div>
+    ${sourceFootnote(['Sistema de tesorería / pactos', 'Custodio (colateral)'])}`;
 }
 
 /* ============================================================
@@ -878,7 +1529,7 @@ function vProyecciones() {
           { name: 'Devengo', color: '#379B94', points: DEVENGO.base.map(v => convVal(v * f).v), area: true },
         ], { unit: '' })}
         <div class="footnote"><span class="meta-chip">Escenario base · sin reinversión de flujos</span>
-          <span class="meta-chip src">Supuestos documentados en Modelos → Supuestos y corridas</span></div>
+          <span class="meta-chip src">Supuestos documentados en el módulo Supuestos y corridas</span></div>
       </div>
       ${sourceFootnote(['Sistema actuarial / ALM', 'Market data (curvas)'])}`;
   }
@@ -897,16 +1548,14 @@ function vProyecciones() {
 /* ============================================================
    MÓDULO: MODELOS
    ============================================================ */
-function vModelos() {
-  const tab = activeTab('modelos');
+function vCalce() {
   const f = factor();
-
-  if (tab === 'Calce / ALM') {
+  {
     return `
       <div class="grid kpis">
-        ${kpiCard('Índice de cobertura global', pct(CALCE.reduce((s, t) => s + t.activos, 0) / CALCE.reduce((s, t) => s + t.pasivos, 0) * 100, 1), 'activos / pasivos descontados', true, 'modelos', 'Supuestos y corridas')}
-        ${kpiCard('Tramos con déficit', `${CALCE.filter(t => t.activos < t.pasivos).length} de ${CALCE.length}`, 'calce por tramo NCG 461', false, 'modelos', 'Supuestos y corridas')}
-        ${kpiCard('Última corrida', '30-06-2026', 'v2026.06 · validada', true, 'modelos', 'Supuestos y corridas')}
+        ${kpiCard('Índice de cobertura global', pct(CALCE.reduce((s, t) => s + t.activos, 0) / CALCE.reduce((s, t) => s + t.pasivos, 0) * 100, 1), 'activos / pasivos descontados', true, 'supuestos')}
+        ${kpiCard('Tramos con déficit', `${CALCE.filter(t => t.activos < t.pasivos).length} de ${CALCE.length}`, 'calce por tramo NCG 461', false, 'supuestos')}
+        ${kpiCard('Última corrida', '30-06-2026', 'v2026.06 · validada', true, 'supuestos')}
       </div>
       <div class="card mt-14">
         <div class="card-header"><span class="card-title">Calce de activos y pasivos por tramo</span><span class="card-sub">flujos descontados · NCG 461 · MM CLP equivalente</span></div>
@@ -937,13 +1586,16 @@ function vModelos() {
       </div>
       ${sourceFootnote(['Sistema actuarial / ALM (corrida 30-06-2026)'])}`;
   }
+}
 
-  if (tab === 'TSA') {
+function vTsa() {
+  const f = factor();
+  {
     return `
       <div class="grid kpis">
-        ${kpiCard('Resultado TSA', TSA.resultado, `corrida ${TSA.fecha} · escenario base`, true, 'modelos', 'Supuestos y corridas')}
-        ${kpiCard('Margen de suficiencia', money(TSA.margen * f), `${pct(TSA.margenPct, 1)} sobre reservas`, true, 'modelos', 'Supuestos y corridas')}
-        ${kpiCard('Tasa de descuento', pct(TSA.tasaDescuento, 2), 'vector CMF al corte', true, 'modelos', 'Supuestos y corridas')}
+        ${kpiCard('Resultado TSA', TSA.resultado, `corrida ${TSA.fecha} · escenario base`, true, 'supuestos')}
+        ${kpiCard('Margen de suficiencia', money(TSA.margen * f), `${pct(TSA.margenPct, 1)} sobre reservas`, true, 'supuestos')}
+        ${kpiCard('Tasa de descuento', pct(TSA.tasaDescuento, 2), 'vector CMF al corte', true, 'supuestos')}
       </div>
       <div class="card mt-14" style="padding:6px 10px">
         <div class="card-header" style="padding:10px 8px 0"><span class="card-title">Sensibilidad del margen por escenario</span></div>
@@ -961,14 +1613,16 @@ function vModelos() {
         <div style="font-size:12.5px;color:var(--text-2);line-height:1.6">
           El Test de Suficiencia de Activos verifica que los flujos de los activos que respaldan reservas técnicas
           cubren los flujos proyectados de las obligaciones, descontados con el vector de tasas de la CMF.
-          Los supuestos (mortalidad, prepago, inflación UF) están documentados en la pestaña <b>Supuestos y corridas</b>,
+          Los supuestos (mortalidad, prepago, inflación UF) están documentados en el módulo <b>Supuestos y corridas</b>,
           con su fecha de última actualización y responsable.
         </div>
       </div>
       ${sourceFootnote(['Sistema actuarial / ALM', 'CMF (vector de descuento)'])}`;
   }
+}
 
-  if (tab === 'Valorización') {
+function vValorizacion() {
+  {
     const metod = [
       { clase: 'Renta fija local', met: 'Mark-to-market con curvas RiskAmerica (tasa + spread por instrumento)', frec: 'Diaria' },
       { clase: 'Renta fija internacional', met: 'Precios Bloomberg BVAL, conversión al TC observado', frec: 'Diaria' },
@@ -991,8 +1645,9 @@ function vModelos() {
       </div>
       ${sourceFootnote(['Market data (RiskAmerica / Bloomberg)', 'Contabilidad de inversiones'])}`;
   }
+}
 
-  // Supuestos y corridas
+function vSupuestos() {
   return `
     <div class="card" style="padding:6px 10px">
       <div class="card-header" style="padding:10px 8px 0"><span class="card-title">Supuestos e insumos de los modelos</span></div>
@@ -1020,22 +1675,23 @@ function vModelos() {
    MÓDULO: CUMPLIMIENTO
    ============================================================ */
 function vCumplimiento() {
+  const data = dataSource('cumplimiento');   // ← datos vía proveedor, no globals
   const tab = activeTab('cumplimiento');
 
   if (tab === 'Semáforo de límites') {
     const counts = { ok: 0, warn: 0, bad: 0 };
-    LIMITES.forEach(l => counts[semEstado(l.uso)]++);
+    data.limites.forEach(l => counts[semEstado(l.uso)]++);
     return `
       <div class="grid kpis">
         <div class="card kpi"><div class="kpi-label"><span class="sem-dot ok"></span> En cumplimiento</div><div class="kpi-value">${counts.ok}</div><div class="kpi-delta up"><span class="vs">uso bajo 85% del cupo</span></div></div>
         <div class="card kpi"><div class="kpi-label"><span class="sem-dot warn"></span> En alerta (ámbar)</div><div class="kpi-value">${counts.warn}</div><div class="kpi-delta down"><span class="vs">uso entre 85% y 100%</span></div></div>
         <div class="card kpi"><div class="kpi-label"><span class="sem-dot bad"></span> Excedidos</div><div class="kpi-value">${counts.bad}</div><div class="kpi-delta ${counts.bad ? 'down' : 'up'}"><span class="vs">requieren regularización</span></div></div>
-        <div class="card kpi"><div class="kpi-label">Total monitoreado</div><div class="kpi-value">${LIMITES.length}</div><div class="kpi-delta up"><span class="vs">CMF + política interna</span></div></div>
+        <div class="card kpi"><div class="kpi-label">Total monitoreado</div><div class="kpi-value">${data.limites.length}</div><div class="kpi-delta up"><span class="vs">CMF + política interna</span></div></div>
       </div>
       <div class="card mt-14" style="padding:6px 10px">
         <div class="table-wrap"><table class="data">
           <thead><tr><th></th><th>Límite</th><th>Origen</th><th>Tope</th><th class="num">Uso del cupo</th><th style="width:120px"></th><th class="num">Holgura</th><th class="num">Tendencia 6M</th></tr></thead>
-          <tbody>${[...LIMITES].sort((a, b) => b.uso - a.uso).map(l => {
+          <tbody>${[...data.limites].sort((a, b) => b.uso - a.uso).map(l => {
             const e = semEstado(l.uso);
             return `<tr class="clickable" data-action="limite" data-id="${l.id}">
               <td><span class="sem-dot ${e}"></span></td>
@@ -1054,16 +1710,16 @@ function vCumplimiento() {
   }
 
   if (tab === 'Detalle por norma') {
-    const l = LIMITES.find(x => x.id === state.limiteId) || LIMITES[0];
+    const l = data.limites.find(x => x.id === state.limiteId) || data.limites[0];
     const e = semEstado(l.uso);
-    const f = factor();
+    const f = data.factor;
     const polOrigen = politicaDeLimite(l.id);
-    const posiciones = POSICIONES.filter(p => l.posiciones.includes(p.id));
+    const posiciones = data.posiciones.filter(p => l.posiciones.includes(p.id));
     const totPos = posiciones.reduce((s, p) => s + p.valor, 0);
     return `
       <div class="filter-bar">
         <select class="ctx-select" id="sel-limite">
-          ${LIMITES.map(x => `<option value="${x.id}" ${x.id === l.id ? 'selected' : ''}>${x.nombre}</option>`).join('')}
+          ${data.limites.map(x => `<option value="${x.id}" ${x.id === l.id ? 'selected' : ''}>${x.nombre}</option>`).join('')}
         </select>
         <span class="status-pill ${e}"><span class="sem-dot ${e}"></span>${semLabel(e)} · uso ${pct(l.uso)}</span>
       </div>
@@ -1109,7 +1765,7 @@ function vCumplimiento() {
       <div class="card-header" style="padding:10px 8px 0"><span class="card-title">Histórico de excesos y alertas</span><span class="card-sub">base de auditoría · últimos 12 meses</span></div>
       <div class="table-wrap"><table class="data">
         <thead><tr><th>Fecha</th><th>Límite</th><th>Evento</th><th>Resolución</th><th class="num">Días</th><th>Estado</th></tr></thead>
-        <tbody>${HIST_CUMPLIMIENTO.map(h => `
+        <tbody>${data.historico.map(h => `
           <tr><td>${h.fecha}</td><td class="cell-main">${h.limite}</td><td>${h.evento}</td>
           <td style="white-space:normal;max-width:320px">${h.resolucion}</td>
           <td class="num">${h.dias ?? '—'}</td>
@@ -1398,10 +2054,10 @@ function vDerivados() {
   if (tab === 'Posiciones') {
     return `
       <div class="grid kpis">
-        ${kpiCard('MTM neto de la cartera', money(mtmNeto * f), `${DERIVADOS.length} contratos vigentes`, mtmNeto >= 0, 'derivados', 'Contrapartes y CSA')}
+        ${kpiCard('MTM neto de la cartera', money(mtmNeto * f), `${DERIVADOS.length} contratos vigentes`, mtmNeto >= 0, 'colateral', 'Contrapartes y CSA')}
         ${kpiCard('Nocional total', money(nocional * f), 'equivalente CLP al corte', true, 'derivados', 'Calce con derivados')}
-        ${kpiCard('Colateral neto', money((COLATERAL.recibido - COLATERAL.entregado) * f), `recibido ${money(COLATERAL.recibido * f)} · entregado ${money(COLATERAL.entregado * f)}`, true, 'derivados', 'Contrapartes y CSA')}
-        ${kpiCard('Buffer de estrés', `${fmt(COLATERAL.disponible / (ESTRES_DERIV[4].llamado || 1), 1)}x`, `mínimo política ${fmt(COLATERAL.bufferMinimo, 1)}x`, COLATERAL.disponible / ESTRES_DERIV[4].llamado >= COLATERAL.bufferMinimo, 'derivados', 'Estrés y colaterales')}
+        ${kpiCard('Colateral neto', money((COLATERAL.recibido - COLATERAL.entregado) * f), `recibido ${money(COLATERAL.recibido * f)} · entregado ${money(COLATERAL.entregado * f)}`, true, 'colateral', 'Contrapartes y CSA')}
+        ${kpiCard('Buffer de estrés', `${fmt(COLATERAL.disponible / (ESTRES_DERIV[4].llamado || 1), 1)}x`, `mínimo política ${fmt(COLATERAL.bufferMinimo, 1)}x`, COLATERAL.disponible / ESTRES_DERIV[4].llamado >= COLATERAL.bufferMinimo, 'colateral', 'Estrés y colaterales')}
       </div>
       <div class="card mt-14" style="padding:6px 10px">
         <div class="table-wrap"><table class="data">
@@ -1430,7 +2086,7 @@ function vDerivados() {
       <div class="grid kpis">
         ${kpiCard('Descalce USD sin derivados', pct(DESCALCE_USD.sin, 1), 'exposición USD bruta / cartera', false, 'cartera', 'Composición')}
         ${kpiCard('Descalce USD con derivados', pct(DESCALCE_USD.con, 1), `tope política ${pct(DESCALCE_USD.limite, 1)} — CCS y forwards vigentes`, true, 'cumplimiento', 'Detalle por norma')}
-        ${kpiCard('Tramos que mejoran', `${CALCE_DERIV.filter(t => t.con > t.sin).length} de ${CALCE_DERIV.length}`, 'índice de calce por tramo NCG 461', true, 'modelos', 'Calce / ALM')}
+        ${kpiCard('Tramos que mejoran', `${CALCE_DERIV.filter(t => t.con > t.sin).length} de ${CALCE_DERIV.length}`, 'índice de calce por tramo NCG 461', true, 'calce')}
       </div>
       <div class="card mt-14">
         <div class="card-header"><span class="card-title">Índice de calce por tramo · sin y con derivados</span><span class="card-sub">efecto de CCS y swaps sobre el calce NCG 461</span></div>
@@ -1459,6 +2115,14 @@ function vDerivados() {
       </div>
       ${sourceFootnote(['Sistema actuarial / ALM', 'Sistema de derivados / Tesorería'])}`;
   }
+}
+
+/* ============================================================
+   MÓDULO: COLATERAL & CSA  (estrés de márgenes, contrapartes, CSA)
+   ============================================================ */
+function vColateral() {
+  const tab = activeTab('colateral');
+  const f = factor();
 
   if (tab === 'Estrés y colaterales') {
     const severo = ESTRES_DERIV[ESTRES_DERIV.length - 1];
@@ -1466,7 +2130,7 @@ function vDerivados() {
     return `
       <div class="grid kpis">
         ${kpiCard('Colateral elegible disponible', money(COLATERAL.disponible * f), 'caja + soberanos post-haircut', true, 'liquidez', 'Posición de liquidez')}
-        ${kpiCard('Llamado bajo combinado severo', money(severo.llamado * f), severo.supuesto, false, 'derivados', 'Contrapartes y CSA')}
+        ${kpiCard('Llamado bajo combinado severo', money(severo.llamado * f), severo.supuesto, false, 'colateral', 'Contrapartes y CSA')}
         ${kpiCard('Buffer resultante', `${fmt(buffer, 1)}x`, `mínimo de política ${fmt(COLATERAL.bufferMinimo, 1)}x`, buffer >= COLATERAL.bufferMinimo, 'cumplimiento', 'Semáforo de límites')}
       </div>
       <div class="grid two mt-14">
@@ -1533,7 +2197,7 @@ function vLiquidez() {
         ${kpiCard('Activos líquidos post-haircut', money(liquidos * f), `${pct(liquidos / total * 100, 0)} de la cartera`, true, 'cartera', 'Composición')}
         ${kpiCard('Salidas próximas 30 días', money(LIQ_SALIDAS_30D * f), 'pensiones, rescates y gastos', true, 'liquidez', 'Fuentes y usos')}
         ${kpiCard('Cobertura 12M · escenario base', `${fmt(LIQ_ESTRES[0].liquidos / LIQ_ESTRES[0].salidas, 1)}x`, `mínimo política ${fmt(LIQ_COBERTURA_MIN, 1)}x`, true, 'liquidez', 'Estrés de liquidez')}
-        ${kpiCard('Colateral comprometido', money(COLATERAL.entregado * f), 'entregado bajo CSA vigentes', true, 'derivados', 'Contrapartes y CSA')}
+        ${kpiCard('Colateral comprometido', money(COLATERAL.entregado * f), 'entregado bajo CSA vigentes', true, 'colateral', 'Contrapartes y CSA')}
       </div>
       <div class="card mt-14" style="padding:6px 10px">
         <div class="card-header" style="padding:10px 8px 0"><span class="card-title">Activos líquidos por bucket</span><span class="card-sub">haircuts de política interna</span></div>
@@ -1954,7 +2618,7 @@ const WIDGETS = [
         { name: 'Amortizaciones', color: '#379B94', values: FLUJOS.amortizaciones.map(v => v * f) }], { fmtVal: v => fmt(v / 1000, 0) + ' mM' })}</div>`; } },
   { id: 'w-estres-deriv', nombre: 'Estrés de derivados y colateral', grupo: 'Derivados', tipo: 'card',
     render: () => { const f = factor(); return `<div class="card"><div class="card-header"><span class="card-title">Estrés de derivados → colateral</span>
-      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="derivados" data-tab="Estrés y colaterales">Detalle ${icon('arrow', 12)}</button></div>
+      <span class="spacer"></span><button class="btn ghost" data-action="goto" data-module="colateral" data-tab="Estrés y colaterales">Detalle ${icon('arrow', 12)}</button></div>
       <div class="table-wrap"><table class="data"><thead><tr><th>Escenario</th><th class="num">ΔMTM</th><th class="num">Llamado</th><th class="num">Buffer</th></tr></thead>
       <tbody>${ESTRES_DERIV.map(s => { const b = s.llamado ? COLATERAL.disponible / s.llamado : null; return `<tr>
         <td class="cell-main">${s.escenario}</td>
@@ -2019,11 +2683,62 @@ function estadoPropuesta(e) {
   return e === 'Propuesta' ? 'neutral' : e === 'En revisión' ? 'warn' : 'ok';
 }
 
+/* Origen de datos de un módulo — cómo lo alimenta el equipo responsable. */
+function fuenteLabel(f) {
+  return f === 'db' ? 'Base documental' : f === 'app' ? 'App dinámica' : 'API Synapse';
+}
+
+const zonaLabel = id => (ZONAS.find(z => z.id === id) || {}).label || '';
+
+/* Tarjeta de módulo — reusada por la galería global y por los sub-portales de sección. */
+function moduleCard(m) {
+  const est = (m.estado || 'Oficial');
+  const estClass = est === 'Beta' ? 'beta' : est === 'Oficial' ? 'oficial' : 'integracion';
+  return `
+    <div class="mod-card" data-action="nav" data-module="${m.id}">
+      <div class="mc-head">
+        <div class="mc-icon">${icon(m.icon, 17)}</div>
+        <div>
+          <div class="mc-name">${m.nombre}</div>
+          <div class="mc-zone">${zonaLabel(m.zona)}${m.tabs.length ? ` · ${m.tabs.length} pestañas` : ''}</div>
+        </div>
+        <span class="fuente-chip" title="Origen de los datos">${fuenteLabel(m.fuente)}</span>
+      </div>
+      <div class="mc-desc">${m.desc}</div>
+      <div class="mc-foot">
+        <span class="badge-estado ${estClass}">${est}</span>
+        <span>${m.owner || ''}</span>
+        <span class="adopt"><span class="progress"><span class="ok" style="display:block;width:${m.adopcion || 0}%;height:100%"></span></span>${m.adopcion || 0}%</span>
+      </div>
+    </div>`;
+}
+
+/* Sub-portal de una sección: todos los módulos de esa zona, estilo galería. */
+function renderZonaPortal(zid) {
+  const z = ZONAS.find(x => x.id === zid);
+  if (!z) { state.module = 'inicio'; return render(); }
+  const mods = MODULES.filter(m => m.zona === zid);
+  $('#main').innerHTML = `
+    <div class="page-header">
+      <div>
+        <div class="page-title">${z.label}</div>
+        <div class="page-desc">Todos los módulos de la sección — ${mods.length} en total. Elige uno para entrar.</div>
+      </div>
+      <div class="page-actions">
+        <span class="meta-chip">${icon('grid', 12)} ${mods.length} módulos</span>
+        <button class="btn" data-action="open-suggest">${icon('up', 13)} Sugerir módulo para esta sección</button>
+      </div>
+    </div>
+    <div class="gallery-grid">${mods.map(moduleCard).join('')}</div>
+    <div class="footnote"><span class="meta-chip">Adopción = % de usuarios activos que visitan el módulo cada semana</span>
+      <span class="meta-chip src">Origen de datos por módulo: API Synapse · base documental · app dinámica</span></div>`;
+  $('#main').scrollTop = 0;
+}
+
 function vExplorar() {
   const tab = activeTab('explorar');
 
   if (tab === 'Galería de módulos') {
-    const zonaLabel = id => (ZONAS.find(z => z.id === id) || {}).label || '';
     return `
       <div class="filter-bar">
         <span class="card-sub">Todos los módulos publicados en el portal, con su dueño de contenido y madurez. ¿Falta algo?</span>
@@ -2032,28 +2747,10 @@ function vExplorar() {
         <button class="btn primary" data-action="open-builder">${icon('plus', 13)} Crear vista propia</button>
       </div>
       <div class="gallery-grid">
-        ${MODULES.filter(m => m.id !== 'explorar').map(m => {
-          const meta = MODULO_META[m.id] || {};
-          return `
-          <div class="mod-card" data-action="nav" data-module="${m.id}">
-            <div class="mc-head">
-              <div class="mc-icon">${icon(m.icon, 17)}</div>
-              <div>
-                <div class="mc-name">${m.nombre}</div>
-                <div class="mc-zone">${zonaLabel(m.zona)}${m.tabs.length ? ` · ${m.tabs.length} pestañas` : ''}</div>
-              </div>
-            </div>
-            <div class="mc-desc">${m.desc}</div>
-            <div class="mc-foot">
-              <span class="badge-estado ${meta.estado === 'Beta' ? 'beta' : 'oficial'}">${meta.estado || 'Oficial'}</span>
-              <span>${meta.owner || ''}</span>
-              <span class="adopt"><span class="progress"><span class="ok" style="display:block;width:${meta.adopcion || 0}%;height:100%"></span></span>${meta.adopcion || 0}%</span>
-            </div>
-          </div>`;
-        }).join('')}
+        ${MODULES.filter(m => m.id !== 'explorar' && m.zona).map(moduleCard).join('')}
       </div>
       <div class="footnote"><span class="meta-chip">Adopción = % de usuarios activos que visitan el módulo cada semana</span>
-        <span class="meta-chip src">Los módulos Beta se gradúan a Oficial tras un ciclo de feedback</span></div>`;
+        <span class="meta-chip src">Ciclo de integración: Propuesta → En integración → Beta → Oficial · el equipo responsable conecta cada módulo (API Synapse · base documental · app)</span></div>`;
   }
 
   if (tab === 'Propuestas') {
@@ -2208,14 +2905,36 @@ function saveSuggestion() {
 /* ============================================================
    RENDER PRINCIPAL
    ============================================================ */
-const VIEWS = {
-  inicio: vInicio, cartera: vCartera, resultados: vResultados,
-  proyecciones: vProyecciones, modelos: vModelos, cumplimiento: vCumplimiento,
-  derivados: vDerivados, liquidez: vLiquidez, rrvv: vRrvv, relval: vRelval, optimizacion: vOptimizacion,
-  politicas: vPoliticas, procedimientos: vProcedimientos, faq: vFaq, explorar: vExplorar,
-};
+/* Adaptador de render: envuelve cualquier módulo con el mismo chrome
+   (header + tabs + context bar + export) sea cual sea su origen.
+   - kind 'nativo': vista JS que renderiza con data del proveedor.
+   - kind 'app'  : app externa (p.ej. Python/Shiny) embebida en iframe por el
+                   equipo responsable; recibe el contexto global por query params.
+   Desde la UX ambos se ven y navegan idéntico. */
+function renderModuleBody(m) {
+  if (m.kind === 'app') {
+    const ctx = `cartera=${state.cartera}&fecha=${state.fecha}&moneda=${state.moneda}&benchmark=${state.benchmark}&vista=${state.vista}`;
+    const src = `${m.render.url}${m.render.url.includes('?') ? '&' : '?'}${ctx}`;
+    return `
+      <div class="app-embed">
+        <div class="app-embed-bar">
+          <span class="meta-chip src">App integrada · ${m.owner || ''}</span>
+          <span class="meta-chip">Recibe el contexto global (cartera · corte · moneda)</span>
+        </div>
+        <iframe class="app-embed-frame" src="${src}" loading="lazy"
+          sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
+          title="${m.nombre}"></iframe>
+      </div>`;
+  }
+  return m.render();
+}
 
 function render() {
+  // Sub-portal de sección (module id "zona:<id>")
+  if (state.module.startsWith('zona:')) {
+    renderZonaPortal(state.module.slice(5));
+    return;
+  }
   // Vistas personalizadas del usuario (module id "mi:<id>")
   if (state.module.startsWith('mi:')) {
     const view = customView(state.module.slice(3));
@@ -2228,9 +2947,9 @@ function render() {
     state.tabs.explorar = 'Mis vistas';
   }
   const m = MODULES.find(x => x.id === state.module);
-  const exportBtn = ['cartera', 'resultados', 'cumplimiento', 'proyecciones', 'derivados', 'liquidez', 'rrvv', 'relval', 'optimizacion'].includes(m.id)
+  const exportBtn = m.export
     ? `<button class="btn primary" data-action="export" data-what="${m.nombre} — vista actual">${icon('export', 13)} Exportar</button>` : '';
-  $('#main').innerHTML = pageHeader(m, exportBtn) + tabsBar(m) + VIEWS[m.id]();
+  $('#main').innerHTML = pageHeader(m, exportBtn) + tabsBar(m) + renderModuleBody(m);
   $('#main').scrollTop = 0;
   bindViewInputs();
 }
@@ -2274,6 +2993,7 @@ function readHash() {
   if (!h) return;
   const [mod, tab] = h.split('/');
   if (mod.startsWith('mi:') && customView(mod.slice(3))) { state.module = mod; return; }
+  if (mod.startsWith('zona:') && ZONAS.some(z => z.id === mod.slice(5))) { state.module = mod; return; }
   if (MODULES.some(m => m.id === mod)) {
     state.module = mod;
     if (tab) {
@@ -2295,6 +3015,7 @@ document.addEventListener('click', e => {
   if (a === 'goto') goTo(el.dataset.module, el.dataset.tab || null);
   if (a === 'tab') { state.tabs[el.dataset.module] = el.dataset.tab; goTo(el.dataset.module); }
   if (a === 'ficha') { state.fichaId = el.dataset.id; state.tabs.cartera = 'Ficha instrumento'; goTo('cartera'); }
+  if (a === 'edificio') { state.edificioId = el.dataset.id; render(); }
   if (a === 'limite') { state.limiteId = el.dataset.id; state.tabs.cumplimiento = 'Detalle por norma'; goTo('cumplimiento'); }
   if (a === 'politica') { state.politicaId = el.dataset.id; state.tabs.politicas = 'Ficha de política'; goTo('politicas'); }
   if (a === 'vista') { state.vista = el.dataset.v; renderContextbar(); render(); }

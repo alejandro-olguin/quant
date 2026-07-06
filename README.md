@@ -15,15 +15,18 @@ node .claude/serve.js
 
 ## Qué incluye
 
-- **14 módulos en 4 zonas por ritmo de trabajo** (todos con sus sub-tabs):
-  - **Monitoreo** (diario): Inicio · Cartera · Resultados · Cumplimiento.
-  - **ALM & Derivados**: Proyecciones · Modelos (Calce/TSA) · **Derivados & Colateral** (posiciones, calce con derivados, estrés MTM → llamados de margen vs. colateral, CSA) · **Liquidez** (buckets con haircut, estrés 12M, fuentes y usos).
-  - **Estrategia & Pricing** (comités): **Rentas Vitalicias** (pricing del día, SCOMP, sensibilidades, histórico) · **Relative Value** (screener de spreads con z-scores, pares, ideas) · **Optimización** (frontera eficiente, actual vs. óptimo, restricciones enlazadas a Cumplimiento, corridas).
-  - **Gobierno**: **Políticas** (catálogo de 7 documentos por área — general, riesgo de crédito, derivados, liquidez, ALM, pricing RRVV, relative value — cada uno con ficha, límites asociados y versionado propio) · Procedimientos · FAQ + Glosario.
-  - **Mi espacio** (plataforma extensible): **Explorar y proponer** — galería de módulos con dueño/madurez/adopción, propuestas de la comunidad con votos y ciclo de vida, y **builder de vistas personalizadas** (16 widgets del catálogo, sin código); las vistas del usuario viven en el sidebar, respetan la context bar y pueden proponerse al catálogo común.
+- **Inicio** — dashboard general, ítem suelto anclado arriba del sidebar (fuera de toda zona).
+- **24 módulos en 6 zonas por función** (buckets generales de misma altura, para que cada módulo tenga un hogar obvio y los nuevos generalicen; varios con sus sub-tabs):
+  - **Cartera** (consolidado + un módulo por clase de activo con gestión propia): **Consolidado** (todas las posiciones, composición, movimientos, ficha) · **Renta Fija** (duración, TIR, rating y composición) · **Derivados** (posiciones del libro de derivados y su efecto en el calce) · **Inmobiliario** (edificios en renta con **mapa clickeable** → arriendos, morosidad, ocupación y arrendatarios por edificio; **mutuos comerciales + leasing**; **mutuos residenciales** por tramo LTV) · **Alternativos** (fondos PE/REIT/infra/deuda privada: **distribuciones y contribuciones** agregadas y por fondo, **rentabilidad y riesgo** TIR/TVPI/DPI/RVPI, y **proyecciones** de llamados y dry powder) · **Pactos (Repos)** (pactos de retrocompra/retroventa: inversión de caja vs. financiamiento, escalera de vencimientos, contrapartes y cobertura de colateral) · **Resultados** (retornos, atribución, P&L). Renta Fija se alimenta filtrando posiciones por clase; Inmobiliario y Alternativos tienen su propio dominio de gestión — todos vía proveedores `dataSource`.
+  - **Análisis**: Proyecciones · **Calce / ALM** (calce por tramo NCG 461) · **TSA** (Test de Suficiencia de Activos) · **Valorización** (metodología por clase) · **Supuestos y corridas** (insumos e historial versionado de los modelos).
+  - **Estrategia & Pricing**: **Rentas Vitalicias** (pricing del día, SCOMP, sensibilidades, histórico) · **Relative Value** (screener de spreads con z-scores, pares, ideas) · **Optimización** (frontera eficiente, actual vs. óptimo, restricciones enlazadas a Cumplimiento, corridas) · **Laboratorio ESG** (módulo tipo `app` — backend Python/Shiny embebido, ejemplo del contrato de plug-in).
+  - **Riesgo & Límites**: **Cumplimiento** (límites CMF y de política interna) · **Liquidez** (buckets con haircut, estrés 12M, fuentes y usos) · **Colateral & CSA** (estrés de MTM → llamados de margen vs. colateral, contrapartes y acuerdos CSA).
+  - **Gobierno & Normativa**: **Políticas** (catálogo de 7 documentos por área — general, riesgo de crédito, derivados, liquidez, ALM, pricing RRVV, relative value — cada uno con ficha, límites asociados y versionado propio) · Procedimientos · FAQ + Glosario.
+  - **Mi espacio** (plataforma extensible): **Explorar y proponer** — galería de módulos con dueño/madurez/adopción/origen de datos, propuestas de la comunidad con votos y ciclo de vida, y **builder de vistas personalizadas** (16 widgets del catálogo, sin código); las vistas del usuario viven en el sidebar, respetan la context bar y pueden proponerse al catálogo común.
+- **Arquitectura de plug-in — agregar un módulo es un acto local, no una cirugía del shell**: cada módulo es un objeto autodescrito (`MODULES` en `js/app.js`) con su propio `render`, capacidades declaradas (`export`, `badge`), origen de datos y ciclo de vida (Propuesta → En integración → Beta → Oficial). El shell (sidebar, ⌘K, galería, navegación, deep-link, export) lo descubre solo. Un **adaptador de render** enmarca por igual módulos nativos (vista JS) y módulos tipo `app` (app externa —p.ej. Python/Shiny— embebida en iframe e integrada por el equipo responsable, que recibe el contexto global por parámetros). Un **proveedor de datos** (`dataSource`) desacopla cada módulo de su fuente: hoy devuelve data sintética, en producción resuelve contra la API de Synapse / la base documental / la app, sin tocar el módulo ni el shell (ya aplicado en Cartera, Cumplimiento y los módulos por clase — Renta Fija, Inmobiliario, Alternativos, Pactos).
 - **Patrón "ejercicio"** en los módulos de mesa: resultado con semáforo → detalle → supuestos → historial de corridas; fila de estado de ejercicios en Inicio.
 - **Login con SSO simulado**: pantalla de inicio de sesión con branding MetLife, ingreso rápido demo como Analista o Ejecutivo (define la vista por defecto), sesión persistente en la pestaña y cierre de sesión desde el sidebar.
-- **UI que escala a muchas secciones**: zonas del sidebar colapsables con contador, pestañas con overflow horizontal, y la galería como punto de descubrimiento cuando el sidebar no alcanza.
+- **UI que escala a muchas secciones**: cada zona del sidebar muestra un número acotado de módulos y un **"Ver más / Ver sección"** que abre el **sub-portal de esa sección** (ruta `zona:<id>`) — una galería con todos sus módulos (dueño, madurez, adopción, origen de datos), al estilo de "Explorar y proponer". Además, zonas colapsables con contador, pestañas con overflow horizontal, y la galería global como descubrimiento transversal.
 - **Context bar global** (patrón Bloomberg PORT): cartera, fecha de corte, moneda CLP/UF/USD y benchmark; recalcula todas las vistas. Incluye indicador de conciliación (patrón Clearwater).
 - **Command palette ⌘K**: módulos, instrumentos, emisores, límites y documentos.
 - **Toggle Ejecutiva / Analista** con dos densidades de información.
@@ -35,9 +38,25 @@ node .claude/serve.js
 ## Estructura
 
 ```
-index.html      shell
-css/styles.css  design system
-js/data.js      data sintética (posiciones, límites CMF, modelos, docs)
-js/charts.js    gráficos SVG sin dependencias
-js/app.js       navegación, render, conversión de moneda, palette
+index.html         shell
+css/styles.css     design system
+js/data.js         data sintética (posiciones, límites CMF, modelos, docs,
+                   edificios en renta, mutuos/leasing, fondos de alternativos, pactos/repos)
+js/charts.js       gráficos SVG sin dependencias
+js/app.js          contrato de módulos (MODULES + registerModule), adaptador de render,
+                   proveedor de datos (dataSource), navegación, conversión de moneda, palette
+apps/esg-lab.html  ejemplo de módulo tipo `app` (backend Python/Shiny simulado, autocontenido)
+```
+
+### Cómo se agrega un módulo nuevo
+
+Un objeto en `MODULES` (o una llamada a `registerModule({...})`) — nada más. El shell lo publica en sidebar, galería, ⌘K, deep-linking y export automáticamente. La `zona` es obligatoria y debe ser una de las definidas (`portafolio`, `analisis`, `estrategia`, `riesgo`, `gobierno`, `plataforma`); si no existe, el módulo no se registra y se avisa por consola (sin bucket comodín):
+
+```js
+registerModule({
+  id: 'esg-lab', nombre: 'Laboratorio ESG', icon: 'grid', zona: 'analisis',
+  desc: 'App dinámica de scoring ESG…', tabs: [],
+  kind: 'app', render: { url: 'apps/esg-lab.html' },   // o kind:'nativo', render: vMiVista
+  fuente: 'app', owner: 'Riesgo · Sostenibilidad', estado: 'Beta', adopcion: 14,
+});
 ```

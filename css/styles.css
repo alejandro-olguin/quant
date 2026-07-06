@@ -18,6 +18,8 @@
   --surface: #FFFFFF;
   --border: #E2E8F0;
   --border-strong: #CBD5E1;
+  --map-bg: #EAF1F6;
+  --map-line: #B7C9D8;
 
   --text: #1A2733;
   --text-2: #51606E;
@@ -134,6 +136,12 @@ select, input { font-family: inherit; }
   margin-top: 4px;
 }
 .nav-item.add-view:hover { color: #fff; border-color: rgba(255,255,255,.45); background: rgba(255,255,255,.06); }
+/* "Ver más" → sub-portal de la sección */
+.nav-item.nav-more { color: #7EA4C4; font-size: 12px; padding-top: 6px; padding-bottom: 6px; }
+.nav-item.nav-more svg:first-of-type { opacity: .6; }
+.nav-item.nav-more svg:last-of-type { margin-left: auto; opacity: .55; }
+.nav-item.nav-more:hover { color: #fff; }
+.nav-item.nav-more.active { color: #fff; box-shadow: inset 3px 0 0 var(--ml-green); background: rgba(0,144,218,.14); }
 .nav-item .custom-dot {
   width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0;
   background: var(--ml-green);
@@ -603,10 +611,27 @@ td .mini-progress { display: inline-block; width: 54px; vertical-align: middle; 
 .mod-card .mc-foot { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-3); }
 .mod-card .mc-foot .adopt { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .mod-card .adopt .progress { width: 46px; }
+.mod-card .fuente-chip { margin-left: auto; flex-shrink: 0; font-size: 10px; font-weight: 700; color: var(--text-3); background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 3px 8px; white-space: nowrap; }
 .badge-estado { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; letter-spacing: .3px; }
 .badge-estado.oficial { background: #E8F2FA; color: var(--ml-blue-mid); }
 .badge-estado.beta { background: #E5F3F2; color: #22766F; }
+.badge-estado.integracion { background: #F1ECFA; color: #6A4CA8; }
 .badge-estado.personal { background: #EFF6E3; color: #5B7F1F; }
+
+/* Mapa de edificios (Inmobiliario) — SVG esquemático clickeable */
+.inmo-map { width: 100%; height: 260px; display: block; border: 1px solid var(--border); border-radius: 10px; }
+.inmo-map g { transition: opacity .12s; }
+.inmo-map g:hover { opacity: .82; }
+.inmo-map-comuna { font-size: 2.6px; fill: #8195A6; font-weight: 600; letter-spacing: .1px; }
+tr.row-active > td { background: rgba(0,144,218,.08); }
+
+/* Módulo tipo 'app' — app externa (Python/Shiny) embebida, mismo chrome que un módulo nativo */
+.app-embed { display: flex; flex-direction: column; gap: 10px; }
+.app-embed-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.app-embed-frame {
+  width: 100%; min-height: 640px; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow);
+}
 
 /* Propuestas */
 .vote-btn {

@@ -648,22 +648,8 @@ const GLOSARIO = [
 
 /* Metadata de cada módulo para la galería: dueño del contenido,
    madurez y adopción (uso semanal % de usuarios activos) */
-const MODULO_META = {
-  inicio:         { owner: 'Producto Quant', estado: 'Oficial', adopcion: 98 },
-  cartera:        { owner: 'Producto Quant', estado: 'Oficial', adopcion: 94 },
-  resultados:     { owner: 'Producto Quant', estado: 'Oficial', adopcion: 92 },
-  cumplimiento:   { owner: 'Riesgo · Producto Quant', estado: 'Oficial', adopcion: 88 },
-  proyecciones:   { owner: 'Producto Quant', estado: 'Oficial', adopcion: 81 },
-  modelos:        { owner: 'Actuarial', estado: 'Oficial', adopcion: 76 },
-  derivados:      { owner: 'Tesorería', estado: 'Beta', adopcion: 72 },
-  liquidez:       { owner: 'Tesorería', estado: 'Beta', adopcion: 69 },
-  rrvv:           { owner: 'Actuarial · Comercial', estado: 'Beta', adopcion: 84 },
-  relval:         { owner: 'Mesa de Inversiones', estado: 'Beta', adopcion: 66 },
-  optimizacion:   { owner: 'Estudios', estado: 'Beta', adopcion: 61 },
-  politicas:      { owner: 'Gerencia de Inversiones', estado: 'Oficial', adopcion: 73 },
-  procedimientos: { owner: 'Gerencia de Inversiones', estado: 'Oficial', adopcion: 58 },
-  faq:            { owner: 'Producto Quant', estado: 'Oficial', adopcion: 49 },
-};
+/* Procedencia y ciclo de vida de cada módulo ahora viven en el propio objeto
+   del módulo (js/app.js → MODULES), no en una tabla aparte. */
 
 /* Propuestas de nuevas secciones hechas por usuarios (demo).
    Ciclo de vida: Propuesta → En revisión → Aprobada → Publicada */
@@ -673,4 +659,86 @@ const PROPUESTAS_BASE = [
   { id: 'PR-03', titulo: 'Monitor de emisiones primarias locales', detalle: 'Calendario de colocaciones de bonos locales con demanda, spreads de emisión y participación de la compañía en cada libro.', owner: 'Mesa RF', area: 'Mesa de Inversiones', votos: 9, estado: 'En revisión', fecha: '24-06-2026' },
   { id: 'PR-04', titulo: 'Reporte automático comité ALCO', detalle: 'Vista imprimible con el paquete estándar del comité ALCO: calce, TSA, liquidez y colaterales en una sola página exportable.', owner: 'C. Undurraga', area: 'Actuarial', votos: 8, estado: 'Propuesta', fecha: '29-06-2026' },
   { id: 'PR-05', titulo: 'Tipo de cambio y coberturas intradía', detalle: 'Posición USD intradía con forwards por vencer en la semana y sensibilidad del P&L al movimiento del día.', owner: 'P. Salazar', area: 'Tesorería', votos: 5, estado: 'Propuesta', fecha: '01-07-2026' },
+];
+
+/* ============================================================
+   GESTIÓN INMOBILIARIA — edificios en renta, mutuos y leasing
+   (data sintética · MM CLP; x/y = coordenadas 0–100 en un mapa
+   esquemático del Gran Santiago para el módulo Inmobiliario)
+   ============================================================ */
+const EDIFICIOS = [
+  { id: 'ED-01', nombre: 'Torre Nueva Costanera', comuna: 'Providencia', tipo: 'Oficinas', x: 60, y: 44, m2: 42000, valor: 68000, arriendoMensual: 285, ocupacion: 94, morosidad: 1.8, capRate: 6.2,
+    arrendatarios: [ { nombre: 'Consultora Deloitte', m2: 8200, renta: 62, moraDias: 0 }, { nombre: 'Naviera Humboldt', m2: 5400, renta: 41, moraDias: 0 }, { nombre: 'Fintech Xepelin', m2: 3100, renta: 24, moraDias: 34 } ] },
+  { id: 'ED-02', nombre: 'Edificio El Golf', comuna: 'Las Condes', tipo: 'Oficinas', x: 72, y: 46, m2: 31000, valor: 58000, arriendoMensual: 240, ocupacion: 97, morosidad: 0.9, capRate: 5.9,
+    arrendatarios: [ { nombre: 'Banco BICE', m2: 9600, renta: 78, moraDias: 0 }, { nombre: 'Estudio Carey', m2: 6200, renta: 52, moraDias: 0 }, { nombre: 'Aseguradora Zurich', m2: 4100, renta: 34, moraDias: 0 } ] },
+  { id: 'ED-03', nombre: 'Nueva Apoquindo', comuna: 'Las Condes', tipo: 'Oficinas', x: 76, y: 48, m2: 28000, valor: 49000, arriendoMensual: 205, ocupacion: 88, morosidad: 3.4, capRate: 6.4,
+    arrendatarios: [ { nombre: 'Minera Escondida', m2: 7400, renta: 61, moraDias: 0 }, { nombre: 'SAP Chile', m2: 4800, renta: 39, moraDias: 62 }, { nombre: 'Coworking Spaces', m2: 3600, renta: 28, moraDias: 15 } ] },
+  { id: 'ED-04', nombre: 'Strip Center Ñuñoa', comuna: 'Ñuñoa', tipo: 'Strip center', x: 56, y: 56, m2: 9000, valor: 14500, arriendoMensual: 78, ocupacion: 90, morosidad: 5.1, capRate: 6.8,
+    arrendatarios: [ { nombre: 'Farmacia Cruz Verde', m2: 620, renta: 9, moraDias: 0 }, { nombre: 'Café Colmado', m2: 240, renta: 4, moraDias: 48 }, { nombre: 'Gimnasio Energy', m2: 1400, renta: 12, moraDias: 22 } ] },
+  { id: 'ED-05', nombre: 'Renta Residencial Centro', comuna: 'Santiago', tipo: 'Renta residencial', x: 48, y: 50, m2: 16000, valor: 22000, arriendoMensual: 96, ocupacion: 92, morosidad: 4.1, capRate: 5.4,
+    arrendatarios: [ { nombre: 'Multifamily · 184 deptos', m2: 16000, renta: 96, moraDias: 12 } ] },
+  { id: 'ED-06', nombre: 'Parque Logístico Quilicura', comuna: 'Quilicura', tipo: 'Bodega / logística', x: 42, y: 24, m2: 55000, valor: 38000, arriendoMensual: 190, ocupacion: 99, morosidad: 0.5, capRate: 7.1,
+    arrendatarios: [ { nombre: 'Falabella Retail', m2: 24000, renta: 88, moraDias: 0 }, { nombre: 'Mercado Libre', m2: 18000, renta: 66, moraDias: 0 }, { nombre: 'CCU Distribución', m2: 9000, renta: 30, moraDias: 0 } ] },
+  { id: 'ED-07', nombre: 'Edificio Isidora', comuna: 'Las Condes', tipo: 'Oficinas', x: 74, y: 45, m2: 22000, valor: 41000, arriendoMensual: 176, ocupacion: 84, morosidad: 6.3, capRate: 6.5,
+    arrendatarios: [ { nombre: 'Latam Airlines', m2: 6800, renta: 58, moraDias: 0 }, { nombre: 'WeWork', m2: 5200, renta: 44, moraDias: 91 }, { nombre: 'Startup Betterfly', m2: 2400, renta: 20, moraDias: 27 } ] },
+  { id: 'ED-08', nombre: 'Mall Vecinal Maipú', comuna: 'Maipú', tipo: 'Strip center', x: 26, y: 58, m2: 12000, valor: 17800, arriendoMensual: 92, ocupacion: 87, morosidad: 3.2, capRate: 7.0,
+    arrendatarios: [ { nombre: 'Unimarc', m2: 3200, renta: 26, moraDias: 0 }, { nombre: 'Banco Estado', m2: 480, renta: 7, moraDias: 0 }, { nombre: 'Local gastronómico', m2: 900, renta: 8, moraDias: 40 } ] },
+];
+
+/* Mutuos hipotecarios comerciales + leasing inmobiliario (por segmento) */
+const MUTUOS_COM = [
+  { segmento: 'Leasing inmobiliario oficinas', saldo: 42000, tasa: 6.1, plazo: 12, morosidad: 2.3, ltv: 58, operaciones: 34 },
+  { segmento: 'Mutuo comercial retail', saldo: 28500, tasa: 6.8, plazo: 10, morosidad: 4.7, ltv: 64, operaciones: 51 },
+  { segmento: 'Leasing bodegas y logística', saldo: 19800, tasa: 6.4, plazo: 9, morosidad: 1.2, ltv: 55, operaciones: 22 },
+  { segmento: 'Mutuo comercial industrial', saldo: 15200, tasa: 7.0, plazo: 11, morosidad: 3.5, ltv: 61, operaciones: 18 },
+];
+
+/* Mutuos hipotecarios residenciales (por tramo de LTV) */
+const MUTUOS_RES = [
+  { tramo: 'LTV < 60%', saldo: 38000, tasa: 4.6, morosidad: 1.1, prepago: 8.2, operaciones: 1240 },
+  { tramo: 'LTV 60–80%', saldo: 52000, tasa: 4.9, morosidad: 2.4, prepago: 6.5, operaciones: 1890 },
+  { tramo: 'LTV > 80%', saldo: 21000, tasa: 5.3, morosidad: 5.8, prepago: 4.1, operaciones: 760 },
+];
+
+/* ============================================================
+   ALTERNATIVOS — fondos (PE, REITs, infra, deuda privada),
+   con compromisos/llamados/distribuciones y métricas de fondo.
+   ============================================================ */
+const ALT_FONDOS = [
+  { id: 'AF-01', nombre: 'Moneda Private Equity IV', tipo: 'Private Equity', estrategia: 'Buyout LatAm', anada: 2021, compromiso: 12000, llamado: 9600, distribuido: 4200, nav: 9800, tir: 18.4, vol: 12 },
+  { id: 'AF-02', nombre: 'Ameris PE Fund II', tipo: 'Private Equity', estrategia: 'Growth Chile', anada: 2020, compromiso: 8000, llamado: 7200, distribuido: 5100, nav: 6400, tir: 16.1, vol: 11 },
+  { id: 'AF-03', nombre: 'LarrainVial Infraestructura', tipo: 'Infraestructura', estrategia: 'Energía y concesiones', anada: 2019, compromiso: 15000, llamado: 13500, distribuido: 6800, nav: 12200, tir: 12.8, vol: 9 },
+  { id: 'AF-04', nombre: 'BTG Private Debt', tipo: 'Deuda privada', estrategia: 'Direct lending', anada: 2022, compromiso: 10000, llamado: 6500, distribuido: 1800, nav: 5900, tir: 9.6, vol: 6 },
+  { id: 'AF-05', nombre: 'Compass REIT Renta', tipo: 'REIT', estrategia: 'Renta inmobiliaria US', anada: 2018, compromiso: 9000, llamado: 9000, distribuido: 3600, nav: 7400, tir: 8.9, vol: 10 },
+  { id: 'AF-06', nombre: 'Independencia Rentas Inmob.', tipo: 'Fondo local', estrategia: 'Renta inmobiliaria Chile', anada: 2020, compromiso: 7000, llamado: 7000, distribuido: 2900, nav: 5600, tir: 7.4, vol: 8 },
+  { id: 'AF-07', nombre: 'KKR Americas XIII (feeder)', tipo: 'Private Equity', estrategia: 'Global buyout', anada: 2021, compromiso: 14000, llamado: 10500, distribuido: 3900, nav: 12800, tir: 21.2, vol: 14 },
+  { id: 'AF-08', nombre: 'Patria Infra IV', tipo: 'Infraestructura', estrategia: 'Infra LatAm', anada: 2022, compromiso: 11000, llamado: 5500, distribuido: 900, nav: 5400, tir: 10.1, vol: 9 },
+];
+
+/* Flujos agregados históricos y proyectados del programa de alternativos */
+const ALT_CASHFLOW = {
+  labels: ['2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'],
+  contribuciones: [4000, 9000, 14000, 16000, 11000, 7000, 5000, 2800],   // llamados de capital
+  distribuciones: [0, 500, 1800, 3200, 4800, 6200, 6900, 5800],          // distribuciones recibidas
+  nav: [3500, 12000, 26000, 40000, 46000, 52000, 60000, 65500],
+};
+const ALT_PROYECCION = {
+  labels: ['2027', '2028', '2029', '2030'],
+  llamados: [7000, 5500, 3000, 1200],        // despliegue de dry powder
+  distribuciones: [9000, 13000, 16000, 14000],
+};
+
+/* ============================================================
+   PACTOS (REPOS) — pactos de retrocompra/retroventa
+   (compra con retroventa = inversión de caja; venta con
+   retrocompra = financiamiento). Montos en MM CLP.
+   ============================================================ */
+const PACTOS = [
+  { id: 'PC-01', contraparte: 'BancoEstado', tipo: 'Compra con retroventa', subyacente: 'BTU-30 (Tesorería UF)', monto: 18000, tasa: 6.20, dias: 7, inicio: '02-07-2026', vencimiento: '09-07-2026', colateral: 18540, moneda: 'CLP' },
+  { id: 'PC-02', contraparte: 'Santander', tipo: 'Compra con retroventa', subyacente: 'BCP-27 (Banco Central $)', monto: 12500, tasa: 6.10, dias: 3, inicio: '02-07-2026', vencimiento: '05-07-2026', colateral: 12810, moneda: 'CLP' },
+  { id: 'PC-03', contraparte: 'BCI', tipo: 'Compra con retroventa', subyacente: 'BTP-28 (Tesorería $)', monto: 9000, tasa: 6.30, dias: 14, inicio: '02-07-2026', vencimiento: '16-07-2026', colateral: 9270, moneda: 'CLP' },
+  { id: 'PC-04', contraparte: 'J.P. Morgan', tipo: 'Venta con retrocompra', subyacente: 'US Treasury 2034', monto: 15000, tasa: 5.40, dias: 30, inicio: '02-07-2026', vencimiento: '01-08-2026', colateral: 15600, moneda: 'USD' },
+  { id: 'PC-05', contraparte: 'Banco de Chile', tipo: 'Compra con retroventa', subyacente: 'PDBC (Banco Central)', monto: 22000, tasa: 6.00, dias: 1, inicio: '02-07-2026', vencimiento: '03-07-2026', colateral: 22330, moneda: 'CLP' },
+  { id: 'PC-06', contraparte: 'Scotiabank', tipo: 'Compra con retroventa', subyacente: 'BCU-30 (Banco Central UF)', monto: 7500, tasa: 6.25, dias: 21, inicio: '02-07-2026', vencimiento: '23-07-2026', colateral: 7725, moneda: 'CLP' },
+  { id: 'PC-07', contraparte: 'BancoEstado', tipo: 'Venta con retrocompra', subyacente: 'Bono Enel Chile Serie K', monto: 6000, tasa: 6.60, dias: 7, inicio: '02-07-2026', vencimiento: '09-07-2026', colateral: 6240, moneda: 'CLP' },
 ];

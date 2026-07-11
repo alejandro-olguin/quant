@@ -1,0 +1,434 @@
+{
+  "POLITICAS": [
+    {
+      "id": "POL-01",
+      "codigo": "INV-01",
+      "titulo": "Política General de Inversiones",
+      "area": "Gerencia de Inversiones",
+      "resumen": "Marco de asignación estratégica, elegibilidad de instrumentos y límites de diversificación de la cartera de reservas técnicas y patrimonio.",
+      "version": "v4.2",
+      "vigencia": "01-04-2026",
+      "aprobadaPor": "Directorio MetLife Chile — Sesión N° 412",
+      "proximaRevision": "01-04-2027",
+      "estado": "Vigente",
+      "objetivo": "Establecer el marco de inversión de las reservas técnicas y patrimonio de MetLife Chile, asegurando la diversificación por clase de activo, emisor y moneda, el cumplimiento del marco regulatorio CMF (DFL 251 y NCG 152) y la generación de retornos consistentes con el apetito de riesgo aprobado por el Directorio.",
+      "principios": [
+        "Prioridad de instrumentos elegibles como representativos de reservas técnicas.",
+        "Diversificación por clase de activo, emisor, grupo empresarial y moneda.",
+        "Las inversiones alternativas e inmobiliarias requieren aprobación previa del Comité de Inversiones.",
+        "Toda excepción a un límite requiere aprobación del Comité de Inversiones y registro en acta."
+      ],
+      "modulos": [
+        {
+          "modulo": "cartera",
+          "tab": "Composición",
+          "label": "Cartera"
+        },
+        {
+          "modulo": "cumplimiento",
+          "tab": "Semáforo de límites",
+          "label": "Cumplimiento"
+        }
+      ],
+      "limites": [
+        {
+          "limiteId": "L1"
+        },
+        {
+          "limiteId": "L2"
+        },
+        {
+          "limiteId": "L5"
+        },
+        {
+          "limiteId": "L7"
+        },
+        {
+          "limiteId": "L9"
+        },
+        {
+          "limiteId": "L11"
+        },
+        {
+          "limiteId": "L12"
+        }
+      ],
+      "versiones": [
+        {
+          "version": "v4.2",
+          "vigencia": "01-04-2026",
+          "estado": "Vigente",
+          "cambios": "Actualiza el marco de diversificación tras la revisión anual del apetito de riesgo corporativo."
+        },
+        {
+          "version": "v4.1",
+          "vigencia": "01-10-2025",
+          "estado": "Histórica",
+          "cambios": "Ajuste de referencias cruzadas a la nueva Política de Uso de Derivados (POL-03)."
+        },
+        {
+          "version": "v4.0",
+          "vigencia": "01-04-2025",
+          "estado": "Histórica",
+          "cambios": "Reescritura integral alineada al nuevo apetito de riesgo corporativo regional; incorporación de benchmark compuesto."
+        },
+        {
+          "version": "v3.6",
+          "vigencia": "01-04-2024",
+          "estado": "Histórica",
+          "cambios": "Última revisión del marco anterior."
+        }
+      ]
+    },
+    {
+      "id": "POL-02",
+      "codigo": "INV-02",
+      "titulo": "Política de Riesgo de Crédito y Contraparte",
+      "area": "Riesgo",
+      "resumen": "Límites de clasificación de riesgo, concentración por emisor/grupo empresarial y criterios de elegibilidad de contrapartes financieras.",
+      "version": "v2.3",
+      "vigencia": "01-04-2026",
+      "aprobadaPor": "Comité de Riesgo — Sesión N° 118",
+      "proximaRevision": "01-04-2027",
+      "estado": "Vigente",
+      "objetivo": "Acotar la exposición a deterioro crediticio de emisores e instituciones financieras contraparte, estableciendo límites de concentración por emisor, grupo empresarial y clasificación de riesgo, y los criterios mínimos de elegibilidad de contrapartes para operaciones de tesorería y derivados.",
+      "principios": [
+        "Toda contraparte de derivados requiere rating mínimo A- y acuerdo ISDA/CSA vigente.",
+        "La concentración por emisor y por grupo empresarial se mide sobre el total de la cartera, incluyendo derivados.",
+        "Los instrumentos bajo BBB+ requieren aprobación expresa del Comité de Riesgo.",
+        "Revisión trimestral de la lista de contrapartes elegibles junto con Tesorería."
+      ],
+      "modulos": [
+        {
+          "modulo": "cumplimiento",
+          "tab": "Semáforo de límites",
+          "label": "Cumplimiento"
+        },
+        {
+          "modulo": "derivados",
+          "tab": "Contrapartes y CSA",
+          "label": "Derivados & Colateral"
+        }
+      ],
+      "limites": [
+        {
+          "limiteId": "L3"
+        },
+        {
+          "limiteId": "L4"
+        },
+        {
+          "limiteId": "L8"
+        },
+        {
+          "limiteId": "L10"
+        }
+      ],
+      "versiones": [
+        {
+          "version": "v2.3",
+          "vigencia": "01-04-2026",
+          "estado": "Vigente",
+          "cambios": "Incorpora el requisito de rating mínimo A- para nuevas contrapartes de derivados."
+        },
+        {
+          "version": "v2.2",
+          "vigencia": "15-07-2025",
+          "estado": "Histórica",
+          "cambios": "Reduce el límite interno de instrumentos BBB o inferiores de 4% a 3%."
+        },
+        {
+          "version": "v2.1",
+          "vigencia": "01-01-2025",
+          "estado": "Histórica",
+          "cambios": "Incorpora el límite de concentración por instrumentos de un mismo banco (DAP)."
+        }
+      ]
+    },
+    {
+      "id": "POL-03",
+      "codigo": "INV-08",
+      "titulo": "Política de Uso de Derivados y Cobertura",
+      "area": "Tesorería",
+      "resumen": "Instrumentos derivados autorizados, propósitos permitidos, límites de nocional y gestión de colateral bajo acuerdos CSA.",
+      "version": "v1.4",
+      "vigencia": "05-05-2026",
+      "aprobadaPor": "Comité de Riesgo Financiero — Sesión N° 44",
+      "proximaRevision": "05-05-2027",
+      "estado": "Vigente",
+      "objetivo": "Regular el uso de instrumentos derivados (cross-currency swaps, interest rate swaps, swaps de inflación y forwards de moneda) exclusivamente con fines de cobertura de calce y de moneda, definiendo los límites de nocional por contraparte, el buffer mínimo de colateral elegible frente a escenarios de estrés y las condiciones de los acuerdos CSA.",
+      "principios": [
+        "Los derivados solo se autorizan con fines de cobertura (calce, moneda o duración); no se autoriza trading especulativo.",
+        "El colateral elegible disponible debe cubrir el llamado de margen proyectado bajo el escenario combinado severo con un buffer mínimo de 1,5x.",
+        "Todo CSA nuevo requiere threshold y MTA aprobados por el Comité de Riesgo Financiero.",
+        "El descalce de moneda USD sin cobertura, neto de derivados, no puede superar el 8% de la cartera."
+      ],
+      "modulos": [
+        {
+          "modulo": "derivados",
+          "tab": "Posiciones",
+          "label": "Derivados & Colateral"
+        },
+        {
+          "modulo": "derivados",
+          "tab": "Estrés y colaterales",
+          "label": "Estrés y colaterales"
+        }
+      ],
+      "limites": [
+        {
+          "limiteId": "L6"
+        },
+        {
+          "nombre": "Buffer de colateral bajo escenario combinado severo",
+          "tope": "≥ 1,5x el llamado proyectado",
+          "modulo": "derivados",
+          "tab": "Estrés y colaterales"
+        }
+      ],
+      "versiones": [
+        {
+          "version": "v1.4",
+          "vigencia": "05-05-2026",
+          "estado": "Vigente",
+          "cambios": "Sube el buffer mínimo de colateral de 1,2x a 1,5x tras el ejercicio de estrés combinado de marzo 2026."
+        },
+        {
+          "version": "v1.3",
+          "vigencia": "01-11-2025",
+          "estado": "Histórica",
+          "cambios": "Incorpora swaps de inflación como instrumento autorizado para calce de reajustabilidad."
+        },
+        {
+          "version": "v1.2",
+          "vigencia": "01-04-2025",
+          "estado": "Histórica",
+          "cambios": "Primera versión que define el buffer mínimo de colateral (1,2x)."
+        }
+      ]
+    },
+    {
+      "id": "POL-04",
+      "codigo": "INV-09",
+      "titulo": "Política de Gestión de Liquidez",
+      "area": "Tesorería",
+      "resumen": "Clasificación de activos líquidos con sus haircuts, cobertura mínima frente a salidas estresadas y ejercicios de estrés obligatorios.",
+      "version": "v1.1",
+      "vigencia": "01-01-2026",
+      "aprobadaPor": "Comité de Riesgo Financiero — Sesión N° 41",
+      "proximaRevision": "01-01-2027",
+      "estado": "Vigente",
+      "objetivo": "Asegurar que la compañía mantenga activos líquidos suficientes para cubrir sus obligaciones de corto y mediano plazo, incluso bajo escenarios de estrés combinado (rescates acelerados, estrés de mercado y llamados de margen), estableciendo los haircuts por tipo de activo y la cobertura mínima exigida.",
+      "principios": [
+        "La cobertura de liquidez a 12 meses bajo el escenario combinado severo no puede ser inferior a 1,2x.",
+        "Los haircuts se revisan semestralmente en conjunto con Riesgo de Mercado.",
+        "El ejercicio de estrés de liquidez se corre mensualmente y se reporta al Comité de Riesgo Financiero.",
+        "Los activos alternativos e inmobiliarios no computan como líquidos para efectos de este cálculo."
+      ],
+      "modulos": [
+        {
+          "modulo": "liquidez",
+          "tab": "Posición de liquidez",
+          "label": "Liquidez"
+        },
+        {
+          "modulo": "liquidez",
+          "tab": "Estrés de liquidez",
+          "label": "Estrés de liquidez"
+        }
+      ],
+      "limites": [
+        {
+          "nombre": "Cobertura de liquidez 12M bajo estrés combinado",
+          "tope": "≥ 1,2x",
+          "modulo": "liquidez",
+          "tab": "Estrés de liquidez"
+        }
+      ],
+      "versiones": [
+        {
+          "version": "v1.1",
+          "vigencia": "01-01-2026",
+          "estado": "Vigente",
+          "cambios": "Incorpora el escenario de rescates acelerados x3 en pólizas con Cuenta Única de Inversión (CUI)."
+        },
+        {
+          "version": "v1.0",
+          "vigencia": "01-04-2025",
+          "estado": "Histórica",
+          "cambios": "Primera versión de la política, previamente los criterios de liquidez formaban parte de la Política General."
+        }
+      ]
+    },
+    {
+      "id": "POL-05",
+      "codigo": "INV-05",
+      "titulo": "Política de Calce de Activos y Pasivos (ALM)",
+      "area": "Actuarial",
+      "resumen": "Metodología de calce por tramo de plazo, índice de calce mínimo exigido y periodicidad del Test de Suficiencia de Activos.",
+      "version": "v3.0",
+      "vigencia": "01-01-2026",
+      "aprobadaPor": "Comité de Inversiones — Sesión N° 87",
+      "proximaRevision": "01-01-2027",
+      "estado": "Vigente",
+      "objetivo": "Definir la metodología de calce de activos y pasivos por tramo de plazo conforme a la NCG 461 de la CMF, el índice de calce mínimo exigido por tramo, y la periodicidad y gobernanza del Test de Suficiencia de Activos (TSA).",
+      "principios": [
+        "El índice de calce por tramo (activos / pasivos descontados) no puede ser inferior a 90%, considerando el efecto de los derivados de cobertura.",
+        "La corrida de calce y TSA se ejecuta mensualmente con curvas y supuestos documentados.",
+        "Todo déficit de calce por tramo se reporta al Comité de Inversiones con plan de regularización.",
+        "Los supuestos actuariales (mortalidad, prepago, inflación) se revisan al menos una vez al año."
+      ],
+      "modulos": [
+        {
+          "modulo": "modelos",
+          "tab": "Calce / ALM",
+          "label": "Modelos"
+        },
+        {
+          "modulo": "modelos",
+          "tab": "TSA",
+          "label": "TSA"
+        },
+        {
+          "modulo": "derivados",
+          "tab": "Calce con derivados",
+          "label": "Calce con derivados"
+        }
+      ],
+      "limites": [
+        {
+          "nombre": "Índice de calce mínimo por tramo (NCG 461)",
+          "tope": "≥ 90%",
+          "modulo": "modelos",
+          "tab": "Calce / ALM"
+        }
+      ],
+      "versiones": [
+        {
+          "version": "v3.0",
+          "vigencia": "01-01-2026",
+          "estado": "Vigente",
+          "cambios": "Incorpora el efecto de los derivados de cobertura en el cálculo del índice de calce por tramo."
+        },
+        {
+          "version": "v2.1",
+          "vigencia": "01-07-2024",
+          "estado": "Histórica",
+          "cambios": "Actualiza la tabla de mortalidad utilizada en el TSA a RV-2020."
+        },
+        {
+          "version": "v2.0",
+          "vigencia": "01-01-2023",
+          "estado": "Histórica",
+          "cambios": "Alineación con la entrada en vigencia de la NCG 461."
+        }
+      ]
+    },
+    {
+      "id": "POL-06",
+      "codigo": "INV-10",
+      "titulo": "Política de Pricing y Tarificación de Rentas Vitalicias",
+      "area": "Actuarial · Comercial",
+      "resumen": "Margen técnico mínimo exigido, gobernanza de la tasa de venta diaria y uso de la información de competencia SCOMP.",
+      "version": "v1.2",
+      "vigencia": "01-02-2026",
+      "aprobadaPor": "Comité de Pricing — Sesión N° 29",
+      "proximaRevision": "01-02-2027",
+      "estado": "Vigente",
+      "objetivo": "Establecer el margen técnico mínimo exigido para la venta de rentas vitalicias, la gobernanza para la definición diaria de la tasa de venta por producto (curva de reinversión candidata, supuestos actuariales y referencia de mercado SCOMP), y las instancias de aprobación ante desviaciones del margen objetivo.",
+      "principios": [
+        "El margen técnico mínimo exigido por producto es de 15 puntos base sobre la tasa de reinversión candidata.",
+        "La tasa de venta diaria es propuesta por Actuarial y validada por el Gerente de Inversiones antes de su publicación.",
+        "La posición relativa en SCOMP es informativa para la mesa comercial, pero no puede gatillar una tasa de venta bajo el margen mínimo sin aprobación del Comité de Pricing.",
+        "Sensibilidades de margen (curva, mortalidad, gastos) se recalculan mensualmente."
+      ],
+      "modulos": [
+        {
+          "modulo": "rrvv",
+          "tab": "Pricing del día",
+          "label": "Rentas Vitalicias"
+        },
+        {
+          "modulo": "rrvv",
+          "tab": "Sensibilidades",
+          "label": "Sensibilidades"
+        }
+      ],
+      "limites": [
+        {
+          "nombre": "Margen técnico mínimo por producto",
+          "tope": "≥ 15 pb",
+          "modulo": "rrvv",
+          "tab": "Pricing del día"
+        }
+      ],
+      "versiones": [
+        {
+          "version": "v1.2",
+          "vigencia": "01-02-2026",
+          "estado": "Vigente",
+          "cambios": "Formaliza la validación diaria del Gerente de Inversiones antes de publicar la tasa de venta."
+        },
+        {
+          "version": "v1.1",
+          "vigencia": "01-08-2025",
+          "estado": "Histórica",
+          "cambios": "Incorpora el uso de SCOMP como referencia informativa de mercado."
+        },
+        {
+          "version": "v1.0",
+          "vigencia": "01-02-2025",
+          "estado": "Histórica",
+          "cambios": "Primera versión de la política, previamente el margen mínimo se definía por acta de comité sin documento formal."
+        }
+      ]
+    },
+    {
+      "id": "POL-07",
+      "codigo": "INV-11",
+      "titulo": "Política de Gestión Activa y Relative Value",
+      "area": "Mesa de Inversiones",
+      "resumen": "Mandato de gestión activa, tracking error máximo permitido y proceso de aprobación de ideas de relative value y propuestas de optimización.",
+      "version": "v1.0",
+      "vigencia": "01-04-2025",
+      "aprobadaPor": "Comité de Inversiones — Sesión N° 79",
+      "proximaRevision": "01-04-2027",
+      "estado": "Vigente",
+      "objetivo": "Definir el mandato de gestión activa de la cartera respecto de su benchmark, el tracking error máximo permitido, y el proceso de registro y aprobación de ideas de relative value y de las propuestas de reasignación generadas por el ejercicio de optimización de portafolio.",
+      "principios": [
+        "El tracking error de la cartera respecto de su benchmark no debe superar 75 pb anualizado.",
+        "Toda idea de relative value se registra en la watchlist con tesis, responsable y fecha antes de ejecutarse.",
+        "Las propuestas de optimización se presentan al Comité de Inversiones con sus restricciones activas explicitadas.",
+        "Ninguna reasignación puede vulnerar los límites de la Política General de Inversiones ni de Riesgo de Crédito."
+      ],
+      "modulos": [
+        {
+          "modulo": "relval",
+          "tab": "Ideas y watchlist",
+          "label": "Relative Value"
+        },
+        {
+          "modulo": "optimizacion",
+          "tab": "Restricciones",
+          "label": "Optimización"
+        }
+      ],
+      "limites": [
+        {
+          "nombre": "Tracking error máximo vs. benchmark",
+          "tope": "≤ 75 pb anualizado",
+          "modulo": "resultados",
+          "tab": "vs. Benchmark"
+        }
+      ],
+      "versiones": [
+        {
+          "version": "v1.0",
+          "vigencia": "01-04-2025",
+          "estado": "Vigente",
+          "cambios": "Primera versión de la política, creada junto con la formalización de la mesa de Relative Value."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "FAQ": [
+    {
+      "cat": "Datos y fuentes",
+      "qas": [
+        {
+          "q": "¿Con qué frecuencia se actualizan los datos del portal?",
+          "a": "Las posiciones y precios se cargan en batch diario desde el custodio y el proveedor de market data (corte 08:30). La valorización contable se actualiza con el cierre diario de SAP y los modelos ALM/TSA con corte mensual. La fecha y hora de corte de cada fuente es visible en el indicador de conciliación de la barra superior."
+        },
+        {
+          "q": "¿Qué significa el indicador \"Conciliado\" de la barra superior?",
+          "a": "Indica que las posiciones de la fecha de corte visible fueron validadas contra el custodio y la contabilidad de inversiones sin diferencias sobre el umbral de tolerancia (0,01%). Si existe una diferencia en investigación, el indicador cambia a \"Conciliación pendiente\"."
+        },
+        {
+          "q": "¿De dónde proviene cada cifra que veo?",
+          "a": "Cada tabla y KPI indica su sistema fuente (custodio, market data, contabilidad, actuarial). El linaje completo del dato está documentado en el procedimiento PR-INV-02."
+        }
+      ]
+    },
+    {
+      "cat": "Metodología",
+      "qas": [
+        {
+          "q": "¿Cómo se calculan los retornos de la cartera?",
+          "a": "Retorno ponderado por tiempo (TWR) con valorización diaria, neto de comisiones de fondos y bruto de gastos internos. El benchmark compuesto se rebalancea mensualmente según la asignación estratégica de la política vigente."
+        },
+        {
+          "q": "¿Cómo se convierten los montos entre CLP, UF y USD?",
+          "a": "Con la UF y el tipo de cambio observado de la fecha de corte seleccionada. Al cambiar la moneda de presentación en la barra superior, todos los módulos se recalculan con esos factores; los valores de origen no se alteran."
+        },
+        {
+          "q": "¿Qué es el tracking error que aparece en Resultados?",
+          "a": "La desviación estándar anualizada de las diferencias de retorno diario entre la cartera y su benchmark, medida sobre una ventana móvil de 12 meses."
+        }
+      ]
+    },
+    {
+      "cat": "Cumplimiento y límites",
+      "qas": [
+        {
+          "q": "¿Qué significa el semáforo de límites?",
+          "a": "Verde: uso del cupo bajo 85%. Ámbar: uso entre 85% y 100% (alerta preventiva, requiere plan de acción). Rojo: exceso sobre el límite, activa el procedimiento PR-INV-06 de regularización y reporte al Comité de Inversiones."
+        },
+        {
+          "q": "¿Los límites del portal reemplazan el reporte regulatorio a la CMF?",
+          "a": "No. El portal es una herramienta de monitoreo interno. Los archivos regulatorios oficiales se generan según el procedimiento PR-INV-07 y son responsabilidad de Contabilidad de Inversiones."
+        }
+      ]
+    },
+    {
+      "cat": "Acceso y roles",
+      "qas": [
+        {
+          "q": "¿Quién puede acceder al portal?",
+          "a": "El acceso es vía SSO corporativo MetLife. Los roles disponibles en el MVP son Ejecutivo (vista sintética), Analista (profundidad completa) y Administrador. Solicitudes de acceso vía mesa de ayuda TI con aprobación del Gerente de Inversiones."
+        },
+        {
+          "q": "¿Puedo exportar la información?",
+          "a": "Sí. Toda exportación respeta los filtros, agrupaciones y contexto activos (cartera, fecha de corte, moneda) e incluye la fecha de corte en el archivo. Las descargas quedan registradas en la bitácora de auditoría."
+        }
+      ]
+    }
+  ],
+  "GLOSARIO": [
+    {
+      "t": "UF (Unidad de Fomento)",
+      "d": "Unidad de cuenta reajustable por inflación usada en Chile; gran parte de la renta fija local y los pasivos de seguros de vida están denominados en UF."
+    },
+    {
+      "t": "Calce (ALM)",
+      "d": "Gestión conjunta de activos y pasivos para que los flujos de la cartera cubran las obligaciones por tramos de plazo, según la NCG 461 de la CMF."
+    },
+    {
+      "t": "TSA — Test de Suficiencia de Activos",
+      "d": "Ejercicio regulatorio que verifica que los activos que respaldan reservas técnicas son suficientes para pagar las obligaciones proyectadas, bajo escenario base y de estrés."
+    },
+    {
+      "t": "Reservas técnicas",
+      "d": "Pasivos que reflejan las obligaciones con los asegurados. Deben estar respaldadas por inversiones \"representativas\" que cumplen requisitos de elegibilidad de la CMF."
+    },
+    {
+      "t": "NCG (Norma de Carácter General)",
+      "d": "Normativa emitida por la CMF. Las relevantes para inversiones incluyen la NCG 152 (límites e inversiones representativas) y la NCG 461 (calce)."
+    },
+    {
+      "t": "Duración",
+      "d": "Sensibilidad del precio de un instrumento de renta fija ante cambios de tasa, expresada en años."
+    },
+    {
+      "t": "TIR / Yield",
+      "d": "Tasa interna de retorno del instrumento a precio de mercado. En instrumentos en UF corresponde a tasa real; en pesos, a tasa nominal."
+    },
+    {
+      "t": "Tracking error",
+      "d": "Volatilidad de la diferencia de retornos entre la cartera y su benchmark; mide qué tan activa es la gestión."
+    },
+    {
+      "t": "Patrimonio de riesgo",
+      "d": "Exigencia patrimonial regulatoria de la aseguradora, determinada por la CMF en función de sus obligaciones y riesgos."
+    },
+    {
+      "t": "Mutuos hipotecarios endosables (MHE)",
+      "d": "Créditos hipotecarios originados por administradoras y endosados a inversionistas institucionales; clase de activo tradicional de aseguradoras de vida chilenas."
+    }
+  ]
+}

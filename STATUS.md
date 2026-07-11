@@ -1,6 +1,6 @@
 # Quant — Status del proyecto
 
-**Fecha:** 06-07-2026 · **Etapa:** Prototipo navegable (Fase 1 + Fase 1.5) con data sintética
+**Fecha:** 11-07-2026 · **Etapa:** Prototipo navegable (Fase 1 + Fase 1.5) con data sintética servida vía API (JSON)
 
 ## Resumen
 
@@ -28,9 +28,10 @@ El prototipo cubre el 100% de la arquitectura de información del [PRD v1.4](PRD
 | Login con SSO simulado (roles Analista/Ejecutivo → vista por defecto, sesión por pestaña, logout) | ✅ Completo (demo; SSO real pendiente de IdP) |
 | Plataforma extensible — builder de vistas (16 widgets), zona "Mi espacio" en sidebar, galería de módulos (dueño/madurez/adopción), propuestas de la comunidad con votos y ciclo de vida, zonas colapsables | ✅ Completo (v1.4; persistencia demo en localStorage) |
 | **Arquitectura de plug-in** — contrato único de módulo (`MODULES` + `registerModule`), capacidades declaradas (`export`/`badge`) que eliminan whitelists/casos especiales del shell, adaptador de render (`nativo` / `app` embebida en iframe con contexto por parámetros), proveedor de datos `dataSource` que desacopla el módulo de su fuente (API Synapse / base / app), y galería que muestra origen + ciclo de vida (Propuesta → En integración → Beta → Oficial) desde el propio objeto del módulo | ✅ Completo (v1.5; Cartera y Cumplimiento migrados al proveedor; **Laboratorio ESG** como módulo `app` de ejemplo en `apps/esg-lab.html`) |
+| **Data servida desde API** — la data deja de viajar embebida en el bundle: se consulta con `fetch` a `data/*.json` (18 recursos/endpoints: reference, posiciones, resultados, cumplimiento, politicas, derivados, liquidez, rrvv, inmobiliario, alternativos, pactos, …). `js/data.js` pasa a ser el cliente (`QuantAPI.get()` + `loadAllData()` que hidrata el cache de cliente al iniciar sesión); el `DataSource` y las vistas no cambian. Requiere servidor (fin del `file://`) | ✅ Completo (11-07-2026; simula el backend de `docs/detail-data-serving-architecture.md`) |
 | PRD actualizado a v1.4 (plataforma extensible, §6.3 y §7.16–7.18) | ✅ En el repo |
 
-Verificación: los 16 módulos y sus sub-tabs (incl. 7 fichas de política) renderizan sin errores en CLP, UF y USD (harness de render sobre cada módulo/tab/moneda, por indisponibilidad de Node en el entorno se validó con `deno`); conversión validada (MM$ 6.920.850 ≈ 176.358 M UF ≈ 7.404 MM US$); los 12 límites de Cumplimiento quedan enlazados a exactamente su política de origen.
+Verificación: los 24 módulos y sus sub-tabs renderizan sin errores en CLP, UF y USD (barrido de render por cada módulo/tab/moneda en el preview con Node); la red confirma los 18 GET a `data/*.json` → 200 y la hidratación de los globales (POSICIONES 30, LIMITES 12, EDIFICIOS 8, PACTOS 7…); conversión validada (MM$ 6.920.850 ≈ 176.358 M UF ≈ 7.404 MM US$).
 
 ## Decisiones de diseño relevantes
 

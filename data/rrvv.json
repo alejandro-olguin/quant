@@ -1,0 +1,164 @@
+{
+  "RRVV_PRICING": {
+    "actualizado": "02-07-2026 09:10",
+    "curvaReinversion": 3.61,
+    "margenObjetivo": 15,
+    "productos": [
+      {
+        "producto": "RV Inmediata",
+        "tasaVenta": 3.42,
+        "scomp": 3.36,
+        "durPasivo": 11.2,
+        "margen": 19,
+        "ventasMes": 18400
+      },
+      {
+        "producto": "RV Diferida",
+        "tasaVenta": 3.55,
+        "scomp": 3.49,
+        "durPasivo": 14.8,
+        "margen": 22,
+        "ventasMes": 6200
+      },
+      {
+        "producto": "RV Garantizada 120 meses",
+        "tasaVenta": 3.31,
+        "scomp": 3.28,
+        "durPasivo": 10.1,
+        "margen": 15,
+        "ventasMes": 9800
+      },
+      {
+        "producto": "RV con Crecimiento 2%",
+        "tasaVenta": 3.18,
+        "scomp": 3.15,
+        "durPasivo": 12.6,
+        "margen": 12,
+        "ventasMes": 3100
+      }
+    ]
+  },
+  "SCOMP_COMP": [
+    {
+      "cia": "Consorcio",
+      "tasa": 3.45,
+      "ranking": 1,
+      "winRate": 27.8
+    },
+    {
+      "cia": "MetLife",
+      "tasa": 3.42,
+      "ranking": 2,
+      "winRate": 24.1
+    },
+    {
+      "cia": "Confuturo",
+      "tasa": 3.39,
+      "ranking": 3,
+      "winRate": 18.5
+    },
+    {
+      "cia": "Penta Vida",
+      "tasa": 3.37,
+      "ranking": 4,
+      "winRate": 13.2
+    },
+    {
+      "cia": "Bice Vida",
+      "tasa": 3.33,
+      "ranking": 5,
+      "winRate": 10.6
+    },
+    {
+      "cia": "Principal",
+      "tasa": 3.3,
+      "ranking": 6,
+      "winRate": 5.8
+    }
+  ],
+  "RRVV_SENSIBILIDAD": [
+    {
+      "variable": "Curva de reinversión −50 pb",
+      "impacto": -38,
+      "comentario": "Margen cae bajo objetivo en RV Inmediata y Crecimiento 2%"
+    },
+    {
+      "variable": "Curva de reinversión +50 pb",
+      "impacto": 36,
+      "comentario": "Holgura para mejorar tasa de venta y ranking SCOMP"
+    },
+    {
+      "variable": "Mejora de mortalidad +5% (longevidad)",
+      "impacto": -12,
+      "comentario": "Sensibilidad concentrada en RV Diferida"
+    },
+    {
+      "variable": "Gastos de administración +10%",
+      "impacto": -4,
+      "comentario": "Impacto acotado, revisar en presupuesto anual"
+    },
+    {
+      "variable": "Spread de reinversión corporativa −20 pb",
+      "impacto": -9,
+      "comentario": "Depende del pipeline de colocaciones locales"
+    }
+  ],
+  "RRVV_HIST": {
+    "labels": [
+      "Jul 25",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
+      "Ene 26",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun"
+    ],
+    "prima": [
+      31200,
+      29800,
+      33400,
+      35100,
+      32600,
+      38900,
+      30400,
+      31800,
+      36200,
+      34700,
+      35900,
+      37500
+    ],
+    "tasaVenta": [
+      3.3,
+      3.32,
+      3.35,
+      3.38,
+      3.36,
+      3.39,
+      3.4,
+      3.38,
+      3.41,
+      3.43,
+      3.42,
+      3.42
+    ],
+    "tasaScomp": [
+      3.28,
+      3.29,
+      3.31,
+      3.35,
+      3.34,
+      3.36,
+      3.37,
+      3.36,
+      3.38,
+      3.39,
+      3.37,
+      3.36
+    ]
+  }
+}

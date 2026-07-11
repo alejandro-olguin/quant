@@ -1,0 +1,109 @@
+{
+  "LIQUIDEZ_BUCKETS": [
+    {
+      "bucket": "Caja y DAP < 30 días",
+      "valor": 169900,
+      "haircut": 0
+    },
+    {
+      "bucket": "Soberanos locales (BTU/BTP/BCP)",
+      "valor": 2366550,
+      "haircut": 5
+    },
+    {
+      "bucket": "Soberanos internacionales (UST)",
+      "valor": 571600,
+      "haircut": 8
+    },
+    {
+      "bucket": "Bancarios y corporativos ≥ AA",
+      "valor": 921500,
+      "haircut": 15
+    },
+    {
+      "bucket": "Acciones y ETF líquidos",
+      "valor": 682500,
+      "haircut": 25
+    },
+    {
+      "bucket": "Resto (fondos, inmobiliario, MHE)",
+      "valor": 1208800,
+      "haircut": null
+    }
+  ],
+  "LIQ_SALIDAS_30D": 118000,
+  "LIQ_ESTRES": [
+    {
+      "escenario": "Base (BAU)",
+      "supuesto": "Pensiones y rescates según proyección actuarial · haircuts normales",
+      "salidas": 962000,
+      "liquidos": 4239000
+    },
+    {
+      "escenario": "Rescates acelerados",
+      "supuesto": "Rescates de pólizas CUI x3 durante 12 meses · pensiones normales",
+      "salidas": 1418000,
+      "liquidos": 4239000
+    },
+    {
+      "escenario": "Estrés de mercado",
+      "supuesto": "Llamados de margen del combinado severo + haircuts x2",
+      "salidas": 1610000,
+      "liquidos": 3561000
+    },
+    {
+      "escenario": "Combinado severo",
+      "supuesto": "Rescates x3 + colateral severo + mercado corporativo cerrado (solo caja y soberanos)",
+      "salidas": 1905000,
+      "liquidos": 2418000
+    }
+  ],
+  "LIQ_COBERTURA_MIN": 1.2,
+  "FUENTES_USOS": {
+    "labels": [
+      "Jul 26",
+      "Ago 26",
+      "Sep 26"
+    ],
+    "entradas": [
+      {
+        "name": "Cupones y vencimientos",
+        "color": "#007ABC",
+        "values": [
+          43600,
+          26600,
+          70400
+        ]
+      },
+      {
+        "name": "Primas RRVV",
+        "color": "#0090DA",
+        "values": [
+          37400,
+          35800,
+          36900
+        ]
+      }
+    ],
+    "salidas": [
+      {
+        "name": "Pensiones",
+        "color": "#1E4C76",
+        "values": [
+          61200,
+          61500,
+          61800
+        ]
+      },
+      {
+        "name": "Rescates y gastos",
+        "color": "#5B7F95",
+        "values": [
+          18400,
+          17900,
+          18800
+        ]
+      }
+    ]
+  }
+}

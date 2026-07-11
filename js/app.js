@@ -573,9 +573,11 @@ function kpiCard(label, value, sub, positive, mod, tab) {
 /* ============================================================
    PROVEEDOR DE DATOS — única puerta a los datos de un módulo.
    El módulo declara QUÉ necesita y en qué contexto; el proveedor decide
-   DE DÓNDE viene. En el prototipo devuelve data sintética; en producción
-   la misma llamada resuelve contra la API de Synapse / la base documental /
-   la app dinámica, sin tocar el módulo ni el shell. Integrar un módulo nuevo
+   DE DÓNDE viene. Hoy lee el cache de cliente que `QuantAPI` (js/data.js)
+   hidrató desde la API (data/*.json) al iniciar sesión; en producción la
+   misma llamada resuelve contra la API de Synapse / la base documental /
+   la app dinámica —opcionalmente `await QuantAPI.get(recurso, ctx)` por
+   recurso—, sin tocar el módulo ni el shell. Integrar un módulo nuevo
    = implementar su proveedor aquí, nada más.
    ============================================================ */
 const DataSource = {
@@ -3190,7 +3192,9 @@ function doLogin(email, rol) {
   btn.disabled = true;
   btn.classList.add('loading');
   $('#login-sso-label').textContent = 'Redirigiendo al IdP corporativo…';
-  setTimeout(() => {
+  setTimeout(async () => {
+    try { await ensureData(); }            // asegura la data cargada antes de entrar al portal
+    catch (e) { toast('No se pudo cargar la data desde la API. Revisa el servidor.'); }
     sessionStorage.setItem(AUTH_KEY, JSON.stringify({ nombre, email, rol }));
     state.vista = rol === 'Ejecutivo' ? 'ejecutiva' : 'analista';
     document.body.classList.add('authed');
@@ -3216,10 +3220,20 @@ document.querySelectorAll('[data-login-rol]').forEach(b =>
   b.addEventListener('click', () => doLogin($('#login-email').value.trim() || 'usuario.demo@metlife.cl', b.dataset.loginRol)));
 
 /* ---------- Init ---------- */
-readHash();
-window.addEventListener('hashchange', () => { readHash(); renderSidebar(); render(); });
-if (currentUser().rol !== '—') {
-  state.vista = currentUser().rol === 'Ejecutivo' ? 'ejecutiva' : 'analista';
-  document.body.classList.add('authed');
-}
-renderAll();
+(async function init() {
+  try {
+    await ensureData();                    // hidrata el cache de cliente desde la API (data/*.json)
+  } catch (e) {
+    console.error('Carga de datos falló:', e);
+    const note = document.querySelector('.lf-note');
+    if (note) note.innerHTML = '<b style="color:#B3261E">No se pudo cargar la data desde la API (<code>data/*.json</code>). Levanta el servidor con <code>node .claude/serve.js</code> y recarga.</b>';
+    return;                                 // no renderizamos un portal sin datos
+  }
+  readHash();
+  window.addEventListener('hashchange', () => { readHash(); renderSidebar(); render(); });
+  if (currentUser().rol !== '—') {
+    state.vista = currentUser().rol === 'Ejecutivo' ? 'ejecutiva' : 'analista';
+    document.body.classList.add('authed');
+  }
+  renderAll();
+})();

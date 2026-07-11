@@ -1,0 +1,114 @@
+{
+  "FLUJOS": {
+    "labels": [
+      "Jul 26",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
+      "Ene 27",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun"
+    ],
+    "cupones": [
+      31200,
+      18400,
+      24800,
+      19500,
+      22100,
+      48300,
+      28700,
+      17900,
+      25400,
+      21800,
+      19200,
+      45100
+    ],
+    "amortizaciones": [
+      12400,
+      8200,
+      45600,
+      9800,
+      11200,
+      78400,
+      15600,
+      7400,
+      52300,
+      10900,
+      9600,
+      64200
+    ]
+  },
+  "VENCIMIENTOS": [
+    {
+      "fecha": "15-07-2026",
+      "instrumento": "DAP Banco Security 90d",
+      "tipo": "Vencimiento DAP",
+      "monto": 22000
+    },
+    {
+      "fecha": "01-08-2026",
+      "instrumento": "Bono Falabella Serie R (cupón)",
+      "tipo": "Cupón",
+      "monto": 1810
+    },
+    {
+      "fecha": "15-09-2026",
+      "instrumento": "BCP-27 (amortización parcial)",
+      "tipo": "Amortización",
+      "monto": 35200
+    },
+    {
+      "fecha": "01-12-2026",
+      "instrumento": "Bono Cencosud Serie P (cupón)",
+      "tipo": "Cupón",
+      "monto": 2520
+    },
+    {
+      "fecha": "15-12-2026",
+      "instrumento": "Letras Hipotecarias (pool)",
+      "tipo": "Amortización",
+      "monto": 41800
+    },
+    {
+      "fecha": "15-03-2027",
+      "instrumento": "BTP-28 (amortización parcial)",
+      "tipo": "Amortización",
+      "monto": 38900
+    }
+  ],
+  "DEVENGO": {
+    "labels": [
+      "Jul 26",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
+      "Ene 27",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun"
+    ],
+    "base": [
+      24800,
+      25100,
+      25300,
+      25600,
+      25900,
+      26400,
+      26600,
+      26900,
+      27300,
+      27600,
+      27900,
+      28300
+    ]
+  }
+}

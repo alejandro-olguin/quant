@@ -1,0 +1,214 @@
+{
+  "DERIVADOS": [
+    {
+      "id": "CCS-001",
+      "tipo": "Cross-Currency Swap",
+      "detalle": "USD 4,30% → UF 2,95%",
+      "contraparte": "J.P. Morgan",
+      "nocional": 145000,
+      "mtm": 4820,
+      "vencimiento": "15-03-2031",
+      "proposito": "Calce de moneda"
+    },
+    {
+      "id": "CCS-002",
+      "tipo": "Cross-Currency Swap",
+      "detalle": "USD 4,55% → UF 3,10%",
+      "contraparte": "Goldman Sachs",
+      "nocional": 120000,
+      "mtm": -2140,
+      "vencimiento": "20-09-2029",
+      "proposito": "Calce de moneda"
+    },
+    {
+      "id": "CCS-003",
+      "tipo": "Cross-Currency Swap",
+      "detalle": "USD 4,10% → UF 2,88%",
+      "contraparte": "Santander-Chile",
+      "nocional": 98000,
+      "mtm": 1230,
+      "vencimiento": "10-06-2033",
+      "proposito": "Calce de moneda"
+    },
+    {
+      "id": "IRS-007",
+      "tipo": "Interest Rate Swap",
+      "detalle": "CLP fijo 5,45% → cámara",
+      "contraparte": "Scotiabank Chile",
+      "nocional": 60000,
+      "mtm": 890,
+      "vencimiento": "05-04-2028",
+      "proposito": "Gestión de duración"
+    },
+    {
+      "id": "SWP-UF-02",
+      "tipo": "Swap de inflación",
+      "detalle": "CLP → UF + 2,98%",
+      "contraparte": "BCI",
+      "nocional": 52000,
+      "mtm": -350,
+      "vencimiento": "18-11-2030",
+      "proposito": "Calce de reajustabilidad"
+    },
+    {
+      "id": "FWD-014",
+      "tipo": "Forward USD/CLP",
+      "detalle": "Venta USD a 948,20",
+      "contraparte": "BancoEstado",
+      "nocional": 45000,
+      "mtm": -680,
+      "vencimiento": "12-08-2026",
+      "proposito": "Cobertura táctica"
+    },
+    {
+      "id": "FWD-015",
+      "tipo": "Forward USD/CLP",
+      "detalle": "Venta USD a 951,10",
+      "contraparte": "Itaú Chile",
+      "nocional": 38000,
+      "mtm": 410,
+      "vencimiento": "25-09-2026",
+      "proposito": "Cobertura táctica"
+    }
+  ],
+  "CALCE_DERIV": [
+    {
+      "tramo": "0 – 1 año",
+      "sin": 104.9,
+      "con": 104.9
+    },
+    {
+      "tramo": "1 – 3 años",
+      "sin": 97.1,
+      "con": 98.6
+    },
+    {
+      "tramo": "3 – 5 años",
+      "sin": 104.2,
+      "con": 104.2
+    },
+    {
+      "tramo": "5 – 10 años",
+      "sin": 95.8,
+      "con": 99.1
+    },
+    {
+      "tramo": "10 – 20 años",
+      "sin": 94,
+      "con": 97.8
+    },
+    {
+      "tramo": "> 20 años",
+      "sin": 82.2,
+      "con": 86.4
+    }
+  ],
+  "DESCALCE_USD": {
+    "sin": 14.3,
+    "con": 7.3,
+    "limite": 8
+  },
+  "ESTRES_DERIV": [
+    {
+      "escenario": "CLP deprecia 10%",
+      "supuesto": "TC 1.028 · resto constante",
+      "dMtm": -18400,
+      "llamado": 16200
+    },
+    {
+      "escenario": "CLP aprecia 10%",
+      "supuesto": "TC 841 · resto constante",
+      "dMtm": 17900,
+      "llamado": 0
+    },
+    {
+      "escenario": "Tasas CLP +100 pb",
+      "supuesto": "paralelo curva cámara",
+      "dMtm": -6800,
+      "llamado": 5400
+    },
+    {
+      "escenario": "Tasas USD +100 pb",
+      "supuesto": "paralelo curva SOFR",
+      "dMtm": 5200,
+      "llamado": 0
+    },
+    {
+      "escenario": "Combinado severo",
+      "supuesto": "TC +10% y tasas CLP +100 pb",
+      "dMtm": -24100,
+      "llamado": 21800
+    }
+  ],
+  "COLATERAL": {
+    "disponible": 68400,
+    "entregado": 3850,
+    "recibido": 6120,
+    "bufferMinimo": 1.5
+  },
+  "CSA": [
+    {
+      "contraparte": "J.P. Morgan",
+      "rating": "A-",
+      "mtmNeto": 4820,
+      "entregado": 0,
+      "recibido": 4600,
+      "threshold": 0,
+      "mta": 250
+    },
+    {
+      "contraparte": "Goldman Sachs",
+      "rating": "BBB+",
+      "mtmNeto": -2140,
+      "entregado": 1900,
+      "recibido": 0,
+      "threshold": 0,
+      "mta": 250
+    },
+    {
+      "contraparte": "Santander-Chile",
+      "rating": "AAA",
+      "mtmNeto": 1230,
+      "entregado": 0,
+      "recibido": 1050,
+      "threshold": 500,
+      "mta": 100
+    },
+    {
+      "contraparte": "Scotiabank Chile",
+      "rating": "AAA",
+      "mtmNeto": 890,
+      "entregado": 0,
+      "recibido": 470,
+      "threshold": 500,
+      "mta": 100
+    },
+    {
+      "contraparte": "BCI",
+      "rating": "AAA",
+      "mtmNeto": -350,
+      "entregado": 280,
+      "recibido": 0,
+      "threshold": 300,
+      "mta": 100
+    },
+    {
+      "contraparte": "BancoEstado",
+      "rating": "AAA",
+      "mtmNeto": -680,
+      "entregado": 620,
+      "recibido": 0,
+      "threshold": 300,
+      "mta": 100
+    },
+    {
+      "contraparte": "Itaú Chile",
+      "rating": "AA",
+      "mtmNeto": 410,
+      "entregado": 0,
+      "recibido": 0,
+      "threshold": 800,
+      "mta": 150
+    }
+  ]
+}

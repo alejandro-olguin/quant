@@ -1,0 +1,170 @@
+{
+  "ALT_FONDOS": [
+    {
+      "id": "AF-01",
+      "nombre": "Moneda Private Equity IV",
+      "tipo": "Private Equity",
+      "estrategia": "Buyout LatAm",
+      "anada": 2021,
+      "compromiso": 12000,
+      "llamado": 9600,
+      "distribuido": 4200,
+      "nav": 9800,
+      "tir": 18.4,
+      "vol": 12
+    },
+    {
+      "id": "AF-02",
+      "nombre": "Ameris PE Fund II",
+      "tipo": "Private Equity",
+      "estrategia": "Growth Chile",
+      "anada": 2020,
+      "compromiso": 8000,
+      "llamado": 7200,
+      "distribuido": 5100,
+      "nav": 6400,
+      "tir": 16.1,
+      "vol": 11
+    },
+    {
+      "id": "AF-03",
+      "nombre": "LarrainVial Infraestructura",
+      "tipo": "Infraestructura",
+      "estrategia": "Energía y concesiones",
+      "anada": 2019,
+      "compromiso": 15000,
+      "llamado": 13500,
+      "distribuido": 6800,
+      "nav": 12200,
+      "tir": 12.8,
+      "vol": 9
+    },
+    {
+      "id": "AF-04",
+      "nombre": "BTG Private Debt",
+      "tipo": "Deuda privada",
+      "estrategia": "Direct lending",
+      "anada": 2022,
+      "compromiso": 10000,
+      "llamado": 6500,
+      "distribuido": 1800,
+      "nav": 5900,
+      "tir": 9.6,
+      "vol": 6
+    },
+    {
+      "id": "AF-05",
+      "nombre": "Compass REIT Renta",
+      "tipo": "REIT",
+      "estrategia": "Renta inmobiliaria US",
+      "anada": 2018,
+      "compromiso": 9000,
+      "llamado": 9000,
+      "distribuido": 3600,
+      "nav": 7400,
+      "tir": 8.9,
+      "vol": 10
+    },
+    {
+      "id": "AF-06",
+      "nombre": "Independencia Rentas Inmob.",
+      "tipo": "Fondo local",
+      "estrategia": "Renta inmobiliaria Chile",
+      "anada": 2020,
+      "compromiso": 7000,
+      "llamado": 7000,
+      "distribuido": 2900,
+      "nav": 5600,
+      "tir": 7.4,
+      "vol": 8
+    },
+    {
+      "id": "AF-07",
+      "nombre": "KKR Americas XIII (feeder)",
+      "tipo": "Private Equity",
+      "estrategia": "Global buyout",
+      "anada": 2021,
+      "compromiso": 14000,
+      "llamado": 10500,
+      "distribuido": 3900,
+      "nav": 12800,
+      "tir": 21.2,
+      "vol": 14
+    },
+    {
+      "id": "AF-08",
+      "nombre": "Patria Infra IV",
+      "tipo": "Infraestructura",
+      "estrategia": "Infra LatAm",
+      "anada": 2022,
+      "compromiso": 11000,
+      "llamado": 5500,
+      "distribuido": 900,
+      "nav": 5400,
+      "tir": 10.1,
+      "vol": 9
+    }
+  ],
+  "ALT_CASHFLOW": {
+    "labels": [
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025",
+      "2026"
+    ],
+    "contribuciones": [
+      4000,
+      9000,
+      14000,
+      16000,
+      11000,
+      7000,
+      5000,
+      2800
+    ],
+    "distribuciones": [
+      0,
+      500,
+      1800,
+      3200,
+      4800,
+      6200,
+      6900,
+      5800
+    ],
+    "nav": [
+      3500,
+      12000,
+      26000,
+      40000,
+      46000,
+      52000,
+      60000,
+      65500
+    ]
+  },
+  "ALT_PROYECCION": {
+    "labels": [
+      "2027",
+      "2028",
+      "2029",
+      "2030"
+    ],
+    "llamados": [
+      7000,
+      5500,
+      3000,
+      1200
+    ],
+    "distribuciones": [
+      9000,
+      13000,
+      16000,
+      14000
+    ]
+  }
+}

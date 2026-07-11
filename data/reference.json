@@ -1,0 +1,69 @@
+{
+  "FX": {
+    "UF": 39243.17,
+    "USD": 934.8,
+    "fecha": "2026-07-02"
+  },
+  "CARTERAS": [
+    {
+      "id": "consolidada",
+      "nombre": "Cartera Consolidada",
+      "factor": 1
+    },
+    {
+      "id": "reservas",
+      "nombre": "Reservas Técnicas",
+      "factor": 0.72
+    },
+    {
+      "id": "patrimonio",
+      "nombre": "Patrimonio Libre",
+      "factor": 0.18
+    },
+    {
+      "id": "cui",
+      "nombre": "Seguros con CUI",
+      "factor": 0.1
+    }
+  ],
+  "BENCHMARKS": [
+    {
+      "id": "compuesto",
+      "nombre": "Benchmark Compuesto MetLife"
+    },
+    {
+      "id": "lva",
+      "nombre": "RiskAmerica RF + IPSA"
+    },
+    {
+      "id": "none",
+      "nombre": "Sin benchmark"
+    }
+  ],
+  "FUENTES": [
+    {
+      "id": "custodio",
+      "nombre": "Custodio (DCV / BNY Mellon)",
+      "estado": "ok",
+      "corte": "02-07-2026 08:15"
+    },
+    {
+      "id": "mkt",
+      "nombre": "Market data (RiskAmerica / Bloomberg)",
+      "estado": "ok",
+      "corte": "02-07-2026 08:30"
+    },
+    {
+      "id": "conta",
+      "nombre": "Contabilidad de inversiones (SAP)",
+      "estado": "ok",
+      "corte": "01-07-2026 22:40"
+    },
+    {
+      "id": "alm",
+      "nombre": "Sistema actuarial / ALM",
+      "estado": "ok",
+      "corte": "30-06-2026 (mensual)"
+    }
+  ]
+}

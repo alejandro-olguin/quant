@@ -11,7 +11,7 @@ node .claude/serve.js
 # → http://localhost:4173
 ```
 
-(o cualquier servidor estático — `python3 -m http.server 4173` también sirve; abrir `index.html` directo funciona igual)
+(o cualquier servidor estático — `python3 -m http.server 4173` también sirve). Ahora **requiere servidor**: como la data se consulta con `fetch` a `data/*.json`, abrir `index.html` por `file://` no carga la data (CORS).
 
 ## Qué incluye
 
@@ -40,13 +40,24 @@ node .claude/serve.js
 ```
 index.html         shell
 css/styles.css     design system
-js/data.js         data sintética (posiciones, límites CMF, modelos, docs,
-                   edificios en renta, mutuos/leasing, fondos de alternativos, pactos/repos)
+data/*.json        "API": un JSON por recurso/endpoint (reference, posiciones,
+                   cumplimiento, politicas, inmobiliario, alternativos, pactos, …)
+js/data.js         cliente de datos: QuantAPI.get() (fetch) + loadAllData() que
+                   hidrata el cache de cliente al iniciar sesión (antes: data embebida)
 js/charts.js       gráficos SVG sin dependencias
 js/app.js          contrato de módulos (MODULES + registerModule), adaptador de render,
-                   proveedor de datos (dataSource), navegación, conversión de moneda, palette
+                   proveedor de datos (DataSource), navegación, conversión de moneda, palette
 apps/esg-lab.html  ejemplo de módulo tipo `app` (backend Python/Shiny simulado, autocontenido)
 ```
+
+La data ya **no viaja embebida en el bundle**: se consulta desde la API. En el prototipo la API son los `data/*.json` (servidos por el mismo servidor estático); en producción `QUANT_API_BASE` (en `js/data.js`) apunta al backend y cada archivo es un endpoint REST. Consecuencia: el portal necesita el servidor (`node .claude/serve.js`) — abrir `index.html` por `file://` ya no carga la data (CORS).
+
+## Backend / arquitectura de datos (referencia)
+
+El prototipo sirve data sintética estática, pero el backend real vive en Synapse sobre parquet (zonas rdz/cdz/mdz). Para exponer **datos de detalle pesados** (p. ej. cashflows por instrumento o por grupos dinámicos de instrumentos) sin romper la premisa de bajo costo:
+
+- [docs/detail-data-serving-architecture.md](docs/detail-data-serving-architecture.md) — recomendación de arquitectura: compute-on-read con Azure Function + DuckDB sobre parquet, y caché de resultados por `hash(set + AsAt)` como mdz materializada de forma perezosa (vs. pre-generar JSON en mdz o mover a Azure SQL).
+- [docs/reference/cashflows-api/](docs/reference/cashflows-api/) — esqueleto de implementación de esa Function (lookup en caché → DuckDB → escritura en caché).
 
 ### Cómo se agrega un módulo nuevo
 

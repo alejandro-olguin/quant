@@ -1,0 +1,95 @@
+{
+  "PACTOS": [
+    {
+      "id": "PC-01",
+      "contraparte": "BancoEstado",
+      "tipo": "Compra con retroventa",
+      "subyacente": "BTU-30 (Tesorería UF)",
+      "monto": 18000,
+      "tasa": 6.2,
+      "dias": 7,
+      "inicio": "02-07-2026",
+      "vencimiento": "09-07-2026",
+      "colateral": 18540,
+      "moneda": "CLP"
+    },
+    {
+      "id": "PC-02",
+      "contraparte": "Santander",
+      "tipo": "Compra con retroventa",
+      "subyacente": "BCP-27 (Banco Central $)",
+      "monto": 12500,
+      "tasa": 6.1,
+      "dias": 3,
+      "inicio": "02-07-2026",
+      "vencimiento": "05-07-2026",
+      "colateral": 12810,
+      "moneda": "CLP"
+    },
+    {
+      "id": "PC-03",
+      "contraparte": "BCI",
+      "tipo": "Compra con retroventa",
+      "subyacente": "BTP-28 (Tesorería $)",
+      "monto": 9000,
+      "tasa": 6.3,
+      "dias": 14,
+      "inicio": "02-07-2026",
+      "vencimiento": "16-07-2026",
+      "colateral": 9270,
+      "moneda": "CLP"
+    },
+    {
+      "id": "PC-04",
+      "contraparte": "J.P. Morgan",
+      "tipo": "Venta con retrocompra",
+      "subyacente": "US Treasury 2034",
+      "monto": 15000,
+      "tasa": 5.4,
+      "dias": 30,
+      "inicio": "02-07-2026",
+      "vencimiento": "01-08-2026",
+      "colateral": 15600,
+      "moneda": "USD"
+    },
+    {
+      "id": "PC-05",
+      "contraparte": "Banco de Chile",
+      "tipo": "Compra con retroventa",
+      "subyacente": "PDBC (Banco Central)",
+      "monto": 22000,
+      "tasa": 6,
+      "dias": 1,
+      "inicio": "02-07-2026",
+      "vencimiento": "03-07-2026",
+      "colateral": 22330,
+      "moneda": "CLP"
+    },
+    {
+      "id": "PC-06",
+      "contraparte": "Scotiabank",
+      "tipo": "Compra con retroventa",
+      "subyacente": "BCU-30 (Banco Central UF)",
+      "monto": 7500,
+      "tasa": 6.25,
+      "dias": 21,
+      "inicio": "02-07-2026",
+      "vencimiento": "23-07-2026",
+      "colateral": 7725,
+      "moneda": "CLP"
+    },
+    {
+      "id": "PC-07",
+      "contraparte": "BancoEstado",
+      "tipo": "Venta con retrocompra",
+      "subyacente": "Bono Enel Chile Serie K",
+      "monto": 6000,
+      "tasa": 6.6,
+      "dias": 7,
+      "inicio": "02-07-2026",
+      "vencimiento": "09-07-2026",
+      "colateral": 6240,
+      "moneda": "CLP"
+    }
+  ]
+}

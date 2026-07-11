@@ -1,0 +1,150 @@
+{
+  "OPT": {
+    "corrida": "v2026.06 · 25-06-2026",
+    "responsable": "Estudios / F. Riquelme",
+    "actual": {
+      "ret": 5.92,
+      "vol": 3.84
+    },
+    "propuesto": {
+      "ret": 6.18,
+      "vol": 3.62
+    },
+    "frontera": [
+      {
+        "vol": 2.1,
+        "ret": 4.35
+      },
+      {
+        "vol": 2.45,
+        "ret": 4.85
+      },
+      {
+        "vol": 2.9,
+        "ret": 5.35
+      },
+      {
+        "vol": 3.3,
+        "ret": 5.8
+      },
+      {
+        "vol": 3.62,
+        "ret": 6.18
+      },
+      {
+        "vol": 4.1,
+        "ret": 6.52
+      },
+      {
+        "vol": 4.7,
+        "ret": 6.85
+      },
+      {
+        "vol": 5.4,
+        "ret": 7.1
+      },
+      {
+        "vol": 6.2,
+        "ret": 7.28
+      }
+    ],
+    "asignacion": [
+      {
+        "clase": "Renta Fija Local",
+        "actual": 50,
+        "optimo": 47.5
+      },
+      {
+        "clase": "Renta Fija Internacional",
+        "actual": 13.5,
+        "optimo": 15
+      },
+      {
+        "clase": "Renta Variable",
+        "actual": 9.9,
+        "optimo": 9
+      },
+      {
+        "clase": "Inmobiliario",
+        "actual": 12.1,
+        "optimo": 13
+      },
+      {
+        "clase": "Mutuos Hipotecarios",
+        "actual": 7.3,
+        "optimo": 9.5
+      },
+      {
+        "clase": "Alternativos",
+        "actual": 4.8,
+        "optimo": 5
+      },
+      {
+        "clase": "Caja y Equivalentes",
+        "actual": 2.5,
+        "optimo": 1
+      }
+    ],
+    "restricciones": [
+      {
+        "nombre": "Renta variable total ≤ 40% (NCG 152)",
+        "limiteId": "L1",
+        "estado": "Holgada"
+      },
+      {
+        "nombre": "Inversión en el extranjero ≤ 20% (NCG 152)",
+        "limiteId": "L2",
+        "estado": "Holgada"
+      },
+      {
+        "nombre": "Descalce USD sin cobertura ≤ 8% (INV-08)",
+        "limiteId": "L6",
+        "estado": "Activa"
+      },
+      {
+        "nombre": "Activos alternativos ≤ 7% (INV-01)",
+        "limiteId": "L12",
+        "estado": "Activa"
+      },
+      {
+        "nombre": "Mutuos hipotecarios ≤ 30% (NCG 152)",
+        "limiteId": "L7",
+        "estado": "Holgada"
+      },
+      {
+        "nombre": "Duración total 6,3 ± 0,5 años (objetivo ALM)",
+        "limiteId": null,
+        "estado": "Activa"
+      },
+      {
+        "nombre": "Índice de calce por tramo ≥ 90% (NCG 461)",
+        "limiteId": null,
+        "estado": "Activa"
+      }
+    ],
+    "supuestos": "Retornos esperados: consenso Estudios jun-2026. Covarianzas: ventana 36M con shrinkage Ledoit-Wolf. Costo de transacción 12 pb round-trip."
+  },
+  "OPT_CORRIDAS": [
+    {
+      "version": "v2026.06",
+      "fecha": "25-06-2026",
+      "responsable": "F. Riquelme",
+      "mejora": "+26 pb / −22 pb vol",
+      "estado": "Presentada a Comité"
+    },
+    {
+      "version": "v2026.03",
+      "fecha": "28-03-2026",
+      "responsable": "F. Riquelme",
+      "mejora": "+18 pb / −10 pb vol",
+      "estado": "Aprobada e implementada"
+    },
+    {
+      "version": "v2025.12",
+      "fecha": "19-12-2025",
+      "responsable": "C. Undurraga",
+      "mejora": "+22 pb / −15 pb vol",
+      "estado": "Aprobada e implementada"
+    }
+  ]
+}

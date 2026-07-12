@@ -13,7 +13,12 @@
    base siguen en MM CLP.
    ============================================================ */
 
-const QUANT_API_BASE = 'data';
+/* Config de entorno inyectada por config.js (runtime). Fallback al prototipo
+   si no está presente, para que la app no se rompa si config.js falta. */
+const __CFG = (typeof window !== 'undefined' && window.QUANT_CONFIG) || {};
+const QUANT_API_BASE = __CFG.apiBase || 'data';
+const QUANT_API_SUFFIX = __CFG.apiSuffix != null ? __CFG.apiSuffix : '.json';
+if (__CFG.entorno) console.info(`Quant · entorno "${__CFG.entorno}" · API: ${QUANT_API_BASE}`);
 
 /* Recursos expuestos por la API. Cada uno resuelve a GET {base}/{recurso}.json
    y trae un bundle de una o más colecciones. El orden no importa (se cargan
@@ -35,7 +40,7 @@ const QuantAPI = {
   async get(resource, params = {}) {
     const qs = Object.keys(params).length
       ? '?' + new URLSearchParams(params).toString() : '';
-    const res = await fetch(`${QUANT_API_BASE}/${resource}.json${qs}`, { cache: 'no-store' });
+    const res = await fetch(`${QUANT_API_BASE}/${resource}${QUANT_API_SUFFIX}${qs}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`API ${resource}: HTTP ${res.status}`);
     return res.json();
   },

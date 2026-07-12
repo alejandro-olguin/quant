@@ -1,0 +1,18 @@
+{
+  "$comment": "Config de hosting para Azure Static Web Apps. La app es un SPA con routing por hash (#modulo/tab), así que el servidor solo entrega assets estáticos; el fallback protege rutas desconocidas. config.js y data/* van sin caché para poder cambiar de ambiente o refrescar datos del prototipo sin invalidaciones.",
+  "trailingSlash": "auto",
+  "mimeTypes": {
+    ".json": "application/json"
+  },
+  "routes": [
+    { "route": "/config.js", "headers": { "Cache-Control": "no-store" } },
+    { "route": "/data/*", "headers": { "Cache-Control": "no-store" } }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/js/*", "/css/*", "/apps/*", "/data/*", "/*.js", "/*.css", "/*.json"]
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff"
+  }
+}

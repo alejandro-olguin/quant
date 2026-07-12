@@ -38,19 +38,36 @@ node .claude/serve.js
 ## Estructura
 
 ```
-index.html         shell
-css/styles.css     design system
-data/*.json        "API": un JSON por recurso/endpoint (reference, posiciones,
-                   cumplimiento, politicas, inmobiliario, alternativos, pactos, …)
-js/data.js         cliente de datos: QuantAPI.get() (fetch) + loadAllData() que
-                   hidrata el cache de cliente al iniciar sesión (antes: data embebida)
-js/charts.js       gráficos SVG sin dependencias
-js/app.js          contrato de módulos (MODULES + registerModule), adaptador de render,
-                   proveedor de datos (DataSource), navegación, conversión de moneda, palette
-apps/esg-lab.html  ejemplo de módulo tipo `app` (backend Python/Shiny simulado, autocontenido)
+index.html              shell
+config.js               config de entorno (runtime): apiBase/apiSuffix por ambiente
+css/styles.css          design system
+data/*.json             "API": un JSON por recurso/endpoint (reference, posiciones,
+                        cumplimiento, politicas, inmobiliario, alternativos, pactos, …)
+js/data.js              cliente de datos: QuantAPI.get() (fetch) + loadAllData() que
+                        hidrata el cache de cliente al iniciar sesión (antes: data embebida)
+js/charts.js            gráficos SVG sin dependencias
+js/app.js               contrato de módulos (MODULES + registerModule), adaptador de render,
+                        proveedor de datos (DataSource), navegación, conversión de moneda, palette
+apps/esg-lab.html       ejemplo de módulo tipo `app` (backend Python/Shiny simulado)
+staticwebapp.config.json  config de hosting (Azure Static Web Apps): MIME, no-store, fallback SPA
 ```
 
-La data ya **no viaja embebida en el bundle**: se consulta desde la API. En el prototipo la API son los `data/*.json` (servidos por el mismo servidor estático); en producción `QUANT_API_BASE` (en `js/data.js`) apunta al backend y cada archivo es un endpoint REST. Consecuencia: el portal necesita el servidor (`node .claude/serve.js`) — abrir `index.html` por `file://` ya no carga la data (CORS).
+La data ya **no viaja embebida en el bundle**: se consulta desde la API. En el prototipo la API son los `data/*.json` (servidos por el mismo servidor estático); en producción apunta al backend y cada archivo es un endpoint REST. Consecuencia: el portal necesita el servidor (`node .claude/serve.js`) — abrir `index.html` por `file://` ya no carga la data (CORS).
+
+### Despliegue como static webapp (mismo bundle, config por ambiente)
+
+Quant es un SPA estático (sin build) con routing por **hash** (`#modulo/tab`) — no necesita reescritura de rutas en el servidor. Para hospedarlo (Azure Static Web Apps / Storage static website / App Service) apuntando al backend real, **no se recompila nada**: se despliega un `config.js` distinto por ambiente.
+
+```js
+// config.js en producción
+window.QUANT_CONFIG = {
+  apiBase: 'https://api-quant.metlife.cl/v1',  // API sobre Synapse/parquet (ver docs/)
+  apiSuffix: '',                                // REST: /posiciones en vez de /posiciones.json
+  entorno: 'produccion',
+};
+```
+
+`js/data.js` lee esa config en runtime (con fallback al prototipo). `config.js` y `data/*` se sirven `no-store` (ver `staticwebapp.config.json`) para que un cambio de ambiente o un refresco de datos tome efecto sin caché. Nota: la API en otro origen necesita CORS habilitado; Synapse en sí no hospeda el SPA — hospeda/expone los datos, y el static host sirve el bundle que los consume.
 
 ## Backend / arquitectura de datos (referencia)
 

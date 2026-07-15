@@ -40,7 +40,7 @@ def load_config() -> Config:
         adls_account=_require("ADLS_ACCOUNT"),
         cdz_container=os.getenv("CDZ_CONTAINER", "cdz"),
         cashflows_prefix=os.getenv("CASHFLOWS_PREFIX", "cashflows"),
-        cache_container=os.getenv("CACHE_CONTAINER", "mdz-cache"),
+        cache_container=os.getenv("CACHE_CONTAINER", "mrdz-cache"),
         cache_prefix=os.getenv("CACHE_PREFIX", "cashflows-groups"),
         max_instruments=int(os.getenv("MAX_INSTRUMENTS", "5000")),
     )

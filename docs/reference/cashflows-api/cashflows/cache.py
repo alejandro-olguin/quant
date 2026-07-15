@@ -1,6 +1,6 @@
 """Blob cache for materialized dynamic-group cashflow curves.
 
-The cache is lazily-materialized mdz: the first request for a group computes the curve
+The cache is lazily-materialized mrdz: the first request for a group computes the curve
 and writes it here; subsequent identical requests read it back directly.
 
 The key is a hash of the *normalized* request (sorted, de-duplicated instrument ids +

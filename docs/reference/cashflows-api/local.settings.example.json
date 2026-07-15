@@ -6,7 +6,7 @@
     "ADLS_ACCOUNT": "micuenta",
     "CDZ_CONTAINER": "cdz",
     "CASHFLOWS_PREFIX": "cashflows",
-    "CACHE_CONTAINER": "mdz-cache",
+    "CACHE_CONTAINER": "mrdz-cache",
     "CACHE_PREFIX": "cashflows-groups",
     "MAX_INSTRUMENTS": "5000"
   }

@@ -53,6 +53,7 @@ Verificación: los 24 módulos y sus sub-tabs renderizan sin errores en CLP, UF 
 5. Plataforma extensible: mover vistas personales de localStorage a backend por usuario, matriz de permisos a nivel de widget (pregunta abierta #16), drag & drop y compartir vistas, notificaciones de cambio de estado de propuestas.
 6. **Arquitectura de plug-in**: migrar los 12 módulos restantes al proveedor `dataSource` (hoy Cartera y Cumplimiento; el resto aún lee globals) e implementar los proveedores reales contra la API de Synapse / base / apps; formalizar el flujo de integración de un módulo `app` propuesto (sandbox, auth y paso de contexto vía postMessage); versionado del contrato de módulo.
 7. Fase 2: órdenes, rebalanceo (conectado a Optimización e Ideas), workflows de aprobación.
+8. **Cashflows Function** ([docs/reference/cashflows-api/](docs/reference/cashflows-api/)): portar la lógica de "último AsAt por cada AsOf" — hoy vive en un script Python de desarrollo aparte que el arquitecto compartirá más adelante — a `cashflows/query.py`; ver el pendiente y su implicancia en la cache-key en [reference/cashflows-api/README.md](docs/reference/cashflows-api/README.md#pending-resolve-latest-asat-per-asof).
 
 ## Cómo correr
 

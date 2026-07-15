@@ -568,6 +568,9 @@ td .mini-progress { display: inline-block; width: 54px; vertical-align: middle; 
   border-radius: var(--radius); padding: 18px 20px;
   color: var(--text-2); font-size: 13px;
 }
+/* Estado de carga de vistas asíncronas (módulos que consultan la API por contexto) */
+.loading-card { text-align: center; padding: 26px 20px; animation: loading-pulse 1.4s ease-in-out infinite; }
+@keyframes loading-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
 .exec-hero {
   border-radius: var(--radius);
   padding: 18px 22px;

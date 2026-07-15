@@ -29,7 +29,9 @@ const API_RESOURCES = [
   'reference', 'posiciones', 'resultados', 'proyecciones', 'modelos',
   'cumplimiento', 'politicas', 'procedimientos', 'faq', 'derivados',
   'liquidez', 'rrvv', 'relval', 'optimizacion', 'inmobiliario',
-  'alternativos', 'pactos', 'plataforma',
+  'alternativos', 'plataforma',
+  // 'pactos' no se hidrata al login: su módulo (js/modules/pactos.js) lo
+  // consulta por contexto en cada navegación — patrón de producción.
 ];
 
 /* Cliente HTTP mínimo. get() acepta params (cartera, corte…) que en producción

@@ -1,6 +1,6 @@
 # Serving Detail Data (Cashflows) — Architecture Recommendation
 
-Status: proposed
+Status: proposed · reference implementation in [reference/cashflows-api/](reference/cashflows-api/)
 Scope: how to expose semi-aggregated, heavy detail data (e.g. cashflows per instrument or per group of instruments) on the Quant platform without breaking the low-cost premise of the current parquet-based backend.
 
 ## Context
@@ -125,6 +125,25 @@ User selects instruments [A, B, C...] in the web, at a given AsAt
 
 Key point at step 3: DuckDB does **not** load the whole parquet into memory or copy it. It reads byte ranges directly from blob, using the parquet's row-group statistics to skip everything that does not match the filter. That is why a 100–300 MB snapshot resolves in hundreds of ms even when it lives in ADLS.
 
+## The mechanics: why "hundreds of ms" is realistic
+
+The pattern rests on three properties that line up unusually well:
+
+1. **Parquet is self-describing and chunked.** A parquet file is divided into *row groups* (typically 100k–1M rows), and the footer stores min/max statistics per column per row group. An engine can read just the footer (a few KB) and know "instrument `INS-014` can only be in row groups 3 and 17" — before touching any data.
+2. **DuckDB reads byte ranges, not files.** Through the [Azure extension](https://duckdb.org/docs/stable/core_extensions/azure), DuckDB issues HTTP range requests against ADLS: footer first, then only the row groups that survive the filter (**predicate pushdown**, `WHERE instrument_id IN (...)`) and only the columns in the query (**projection pushdown**, `SELECT bucket_date, amount`). For a 300 MB snapshot where the request wants 50 instruments × 3 columns, only a few MB actually leave the storage account.
+3. **DuckDB is embedded.** It is a library inside the Function process — starts in milliseconds, no server, no connection pool. The unit of compute is the Function invocation itself, so cost is strictly per request. The canonical writeup of the pushdown mechanics, with benchmarks, is DuckDB's ["Querying Parquet with Precision"](https://duckdb.org/2021/06/25/querying-parquet.html).
+
+## Getting that performance in practice
+
+Pushdown is only as good as the file layout lets it be. Checklist, in order of leverage:
+
+- **Sort the data inside each snapshot by `instrument_id`** (already in recommendation #1). Row-group statistics only prune if values are clustered: if instruments are scattered randomly, every row group's min/max spans the whole ID range and the engine must read everything. One `ORDER BY instrument_id` at write time is the single highest-leverage optimization.
+- **Few large files, not many small ones.** 20k per-instrument partitions means 20k footers to fetch — thousands of round trips before any data moves. One file (or a handful) per `AsOf/AsAt` is right; default row-group sizes (~122k rows) are fine. See DuckDB's [performance guide on file formats](https://duckdb.org/docs/stable/guides/performance/file_formats).
+- **Partition only by what every query filters on** — Hive-style `AsOf=/AsAt=` directories, so partition pruning eliminates whole snapshots before any I/O. That is what `cashflows_glob()` in the reference implementation encodes.
+- **Verify pushdown empirically** with `EXPLAIN ANALYZE`: it reports rows scanned vs. rows returned. If scanned ≈ total rows, sorting or statistics are off and you are paying for full scans without noticing.
+- **Co-locate Function and storage account in the same region.** Range requests are chatty; cross-region latency multiplies per round trip.
+- **Local dev needs no Azure**: the same DuckDB code runs against local parquet files by swapping the glob path — prototype the whole API with `func start` and synthetic parquet on disk before touching ADLS.
+
 ## Reference code
 
 **DuckDB:**
@@ -183,12 +202,44 @@ Both work. For "serve aggregations from remote parquet on ADLS", DuckDB has the 
 
 ## Operational notes
 
-- **Function cold start:** on the Consumption plan, the first invocation after idle takes a few seconds to spin up the runtime. DuckDB itself starts in milliseconds; the cost is the Python/Function host. If first-hit latency matters, use a **Premium plan with one warm instance** or a Consumption health-ping. The hash cache amortizes this — repeat hits never touch the Function.
+- **Function cold start / hosting plan:** DuckDB itself starts in milliseconds; the cost is the Python/Function host spinning up after idle. The recommended home today is the **[Flex Consumption plan](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan)** (GA since late 2024, [announcement](https://techcommunity.microsoft.com/blog/appsonazureblog/azure-functions-flex-consumption-is-now-generally-available/4298778)): pay-per-use billing, but with **always-ready instances** configurable per function to eliminate the cold start, and per-instance memory sizing (relevant because DuckDB wants headroom for the aggregation hash table). Python 3.11 supported. This supersedes the older "Premium plan with one warm instance" workaround. The hash cache amortizes cold starts regardless — repeat hits never touch the Function.
 - **Memory:** size the Function for the largest AsAt snapshot × concurrency. With 100–300 MB per snapshot and pushdown, a modest plan is plenty. Monte Carlo scenarios (see open questions) would change this.
 - **Concurrency:** each invocation is isolated and stateless — they scale horizontally on their own. No shared-DB contention.
 - **Auth:** `CREDENTIAL_CHAIN` / Managed Identity from the Function to ADLS, no secrets in code.
+
+## Where this lands in the Quant front end
+
+The portal side of this pattern already exists: **the Pactos (Repos) module is the mold.** Its plug-in (`js/modules/pactos.js`) declares a data provider that queries the API **per navigation with the global context** (`QuantAPI.get('pactos', { cartera, corte })`), and the shell handles the async lifecycle: loading state, error banner if the API fails, and a render token that discards stale responses.
+
+A cashflows module is the same shape, one level up in dynamism:
+
+1. New plug-in in `js/modules/` registered with `registerModule`, with a `data` provider that POSTs `{ asOf, asAt, instrumentIds }` to this Function (the request contract in [reference/cashflows-api/README.md](reference/cashflows-api/README.md)).
+2. The endpoint root comes from `config.js` (`apiBase` per environment) — the same runtime-config mechanism the rest of the portal uses; nothing recompiles.
+3. The shell needs no changes: the async render machinery, `esc()` for API-served text, and the empty-data guard convention were all introduced with the Pactos migration.
+
+So the integration order is: deploy the Function → point `config.js` at it → write the module file. Each step is local.
 
 ## Open questions that would refine partitioning/sizing
 
 1. **Are cashflows deterministic (contractual calendar) or stochastic (N Monte Carlo trajectories)?** Scenarios multiply volume by N and change the partitioning strategy.
 2. **Are all daily AsAt snapshots retained, or only milestones?** This defines how the history grows over time.
+
+## References
+
+**DuckDB — core reading:**
+
+- [Azure extension](https://duckdb.org/docs/stable/core_extensions/azure) — `abfss://`, secrets, `CREDENTIAL_CHAIN`; edge cases in the [duckdb-azure repo](https://github.com/duckdb/duckdb-azure)
+- [Querying Parquet with Precision](https://duckdb.org/2021/06/25/querying-parquet.html) — pushdown mechanics with benchmarks; read this first
+- [Performance guide: file formats](https://duckdb.org/docs/stable/guides/performance/file_formats) — row-group sizing, file counts, sorting
+- Practitioner walkthrough on Azure: [Quacking Queries in the Azure Cloud with DuckDB](https://medium.com/datamindedbe/quacking-queries-in-the-azure-cloud-with-duckdb-14be50f6e141) (Dataminded)
+
+**Azure Functions:**
+
+- [Flex Consumption plan](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan) · [how-to](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-how-to) (always-ready instances, memory sizes)
+- [Python developer guide](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python) — the v2 programming model used by the reference implementation
+- [Azure Identity / DefaultAzureCredential](https://learn.microsoft.com/en-us/python/api/overview/azure/identity-readme) — Managed Identity chain, no secrets in code
+
+**Alternatives, for calibration:**
+
+- [Synapse serverless SQL over parquet](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/query-parquet-files) — already available; the "no code to deploy" fallback at US$5/TB scanned, slower and colder
+- [Polars cloud storage / lazy scans](https://docs.pola.rs/user-guide/io/cloud-storage/) — alternative engine; see "DuckDB vs Polars" above (they compose via Arrow, zero-copy)

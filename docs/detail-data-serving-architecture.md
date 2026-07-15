@@ -74,11 +74,12 @@ When a dynamic group arrives, compute it with DuckDB and **write the result as J
 
 ### Decision rule
 
-```
-Individual instrument / fixed groups  → pre-generated JSON in mdz (batch)
-Dynamic groups                        → Azure Function + DuckDB over parquet (cdz)
-                                        → result cached as JSON keyed by hash(set + AsAt)
-Azure SQL                             → NO, unless measurements prove extreme concurrency
+```mermaid
+flowchart LR
+    A["Individual instrument /<br/>fixed groups"] --> B["pre-generated JSON<br/>in mdz (batch)"]
+    C["Dynamic groups"] --> D["Azure Function + DuckDB<br/>over parquet (cdz)"]
+    D --> E["result cached as JSON<br/>keyed by hash(set + AsAt)"]
+    F["Azure SQL"] --> G["NO, unless measurements<br/>prove extreme concurrency"]
 ```
 
 ## The core concept: compute-on-read vs precompute-on-write
@@ -100,27 +101,17 @@ Analogy: mdz = "cook the dish and leave it served"; Function + DuckDB = "cook to
 
 ## Request flow (dynamic group)
 
-```
-User selects instruments [A, B, C...] in the web, at a given AsAt
-        │
-        ▼
-1. Front calls the API  ──►  does a cached JSON exist for hash(set + AsAt)?
-        │                          │ yes → return JSON (ms, from blob/CDN). DONE.
-        │                          │ no ↓
-        ▼
-2. Azure Function starts DuckDB (in-process, no DB server)
-        │
-3. DuckDB reads ONLY the requested AsAt parquet, in ADLS,
-   with predicate pushdown: pulls only the needed row-groups and
-   columns (not the whole file)
-        │
-4. Filters instrument_id IN (...), GROUP BY date, SUM(amount)
-        │
-5. Returns the aggregated curve (hundreds of ms)
-        │
-6. Writes that result as JSON to blob keyed by hash(set + AsAt)
-   → the next identical hit short-circuits at step 1. Never invalidated
-     because AsAt is immutable.
+```mermaid
+flowchart TD
+    U["User selects instruments [A, B, C...]<br/>in the web, at a given AsAt"] --> S1
+    S1["1. Front calls the API:<br/>cached JSON exists for hash(set + AsAt)?"]
+    S1 -->|yes| DONE["Return JSON<br/>(ms, from blob/CDN). DONE."]
+    S1 -->|no| S2["2. Azure Function starts DuckDB<br/>(in-process, no DB server)"]
+    S2 --> S3["3. DuckDB reads ONLY the requested AsAt<br/>parquet in ADLS, with predicate pushdown:<br/>only needed row-groups and columns"]
+    S3 --> S4["4. Filters instrument_id IN (...),<br/>GROUP BY date, SUM(amount)"]
+    S4 --> S5["5. Returns the aggregated curve<br/>(hundreds of ms)"]
+    S5 --> S6["6. Writes result as JSON to blob<br/>keyed by hash(set + AsAt)"]
+    S6 -.->|"next identical request short-circuits<br/>at step 1 — never invalidated,<br/>AsAt is immutable"| S1
 ```
 
 Key point at step 3: DuckDB does **not** load the whole parquet into memory or copy it. It reads byte ranges directly from blob, using the parquet's row-group statistics to skip everything that does not match the filter. That is why a 100–300 MB snapshot resolves in hundreds of ms even when it lives in ADLS.

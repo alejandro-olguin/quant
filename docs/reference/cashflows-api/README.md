@@ -8,10 +8,11 @@ either serves a cached JSON (hash of the instrument set + snapshot) or computes 
 aggregation with DuckDB directly over the cdz parquet, then persists the result as JSON
 so the next identical request is a cheap cache hit.
 
-```
-HTTP request ─► cache lookup (blob, keyed by hash(set+AsOf+AsAt))
-                   │ hit  ─► return cached JSON            (ms)
-                   │ miss ─► DuckDB over cdz parquet ─► JSON ─► write to cache
+```mermaid
+flowchart LR
+    A["HTTP request"] --> B["cache lookup (blob, keyed<br/>by hash(set+AsOf+AsAt))"]
+    B -->|hit| C["return cached JSON (ms)"]
+    B -->|miss| D["DuckDB over cdz parquet"] --> E["JSON"] --> F["write to cache"]
 ```
 
 This is a **reference skeleton**, not production code: auth, input validation limits,
